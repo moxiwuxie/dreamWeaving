@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/sensory_bus.schema.json",
+  "title": "Sensory Event Bus Config (M011-01)",
+  "description": "统一感官事件总线：所有玩法/模拟模块只发布一份感知事件，由总线完成通道路由、心理物理曲线、跨模态同步窗口、焦点降级与算力预算，再驱动视觉/听觉/触觉/嗅觉/味觉外设。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "sync_window_ms",
+    "tick_hz",
+    "channels",
+    "psychophysics",
+    "focus_policy",
+    "budget"
+  ],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "sync_window_ms": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 200,
+      "description": "硬同步通道的时间窗。多感官整合研究给出的跨模态可容忍时差约 20~80ms，超过即视为不同步。"
+    },
+    "soft_sync_window_ms": {
+      "type": "integer",
+      "minimum": 50,
+      "maximum": 1000,
+      "default": 400,
+      "description": "嗅觉/味觉等慢通道的软同步窗口，允许比视听触更晚到达。"
+    },
+    "tick_hz": {
+      "type": "integer",
+      "minimum": 30,
+      "maximum": 240,
+      "description": "总线调度频率，需不低于最低刷新率以保证事件按帧聚合。"
+    },
+    "channels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["visual", "audio", "haptic", "scent", "taste"],
+      "properties": {
+        "visual": { "$ref": "#/$defs/channel" },
+        "audio": { "$ref": "#/$defs/channel" },
+        "haptic": { "$ref": "#/$defs/channel" },
+        "scent": { "$ref": "#/$defs/channel" },
+        "taste": { "$ref": "#/$defs/channel" }
+      }
+    },
+    "psychophysics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["visual", "audio", "haptic", "scent", "taste"],
+      "properties": {
+        "visual": { "$ref": "#/$defs/psychophysics_curve" },
+        "audio": { "$ref": "#/$defs/psychophysics_curve" },
+        "haptic": { "$ref": "#/$defs/psychophysics_curve" },
+        "scent": { "$ref": "#/$defs/psychophysics_curve" },
+        "taste": { "$ref": "#/$defs/psychophysics_curve" }
+      },
+      "description": "刺激强度到主观感受强度的映射，禁止把物理量线性放大后直接输出到外设。"
+    },
+    "routing": {
+      "type": "object",
+      "description": "事件类型 -> 允许的感官通道。未声明的类型默认使用事件自带的通道集合。",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]{1,63}$" },
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 5,
+        "uniqueItems": true,
+        "items": { "type": "string", "enum": ["visual", "audio", "haptic", "scent", "taste"] }
+      }
+    },
+    "focus_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "off_focus_scale", "attenuated_channels"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "是否按注意力分配算力：焦点内全精度，焦点外降级。"
+        },
+        "off_focus_scale": {
+          "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized",
+          "description": "非焦点事件的强度折扣，1 表示不降级。"
+        },
+        "attenuated_channels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["visual", "audio", "haptic", "scent", "taste"] }
+        },
+        "drop_below": {
+          "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized",
+          "default": 0.05,
+          "description": "降级后主观强度低于该阈值的事件直接丢弃，模拟大脑忽略非焦点刺激。"
+        }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_events_per_tick", "per_channel_events_per_sec"],
+      "properties": {
+        "max_events_per_tick": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 512,
+          "description": "单帧最多派发的感知事件数，超出按优先级裁剪。"
+        },
+        "per_channel_events_per_sec": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["visual", "audio", "haptic", "scent", "taste"],
+          "properties": {
+            "visual": { "type": "integer", "minimum": 1, "maximum": 512 },
+            "audio": { "type": "integer", "minimum": 1, "maximum": 256 },
+            "haptic": { "type": "integer", "minimum": 1, "maximum": 256 },
+            "scent": { "type": "integer", "minimum": 1, "maximum": 32 },
+            "taste": { "type": "integer", "minimum": 1, "maximum": 32 }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "sync_mode", "min_priority", "devices"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "sync_mode": {
+          "type": "string",
+          "enum": ["hard", "soft"],
+          "description": "hard 必须满足 sync_window_ms；soft 允许在软窗口内异步到达。"
+        },
+        "min_priority": {
+          "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized",
+          "description": "低于该优先级的事件不进入本通道。"
+        },
+        "devices": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "enabled", "latency_ms"],
+            "properties": {
+              "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+              "enabled": { "type": "boolean" },
+              "latency_ms": { "type": "number", "minimum": 0, "maximum": 500 },
+              "capabilities": {
+                "type": "array",
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "psychophysics_curve": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["law", "exponent"],
+      "properties": {
+        "law": {
+          "type": "string",
+          "enum": ["stevens", "fechner", "linear"],
+          "description": "stevens 幂律、fechner 对数律、linear 仅用于对照调试。"
+        },
+        "exponent": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 3,
+          "description": "幂指数。亮度约 0.33~0.5，震动约 0.6~0.9，气味约 0.3~0.6。"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": "0.1.0",
+  "world_id": "earth_demo",
+  "world_name": "地球基准演示世界",
+  "world_version": "0.1.0",
+  "template": "earth",
+  "created_at": "2026-11-13T00:00:00+08:00",
+  "author": "dreamweave",
+  "engine": {
+    "min_loader_version": "0.1.0",
+    "target_build": "UE5.8-dev"
+  },
+  "modules": {
+    "physics": { "path": "config/physics.json" },
+    "ecology": { "path": "config/ecology.json" },
+    "npc_agent": { "path": "config/npc_agent.json" },
+    "player_body": { "path": "config/player_body.json" },
+    "scenes": { "path": "config/scenes.json" },
+    "narrative": { "path": "config/narrative.json" },
+    "visual": { "path": "config/visual.json" },
+    "audio": { "path": "config/audio.json" },
+    "haptic": { "path": "config/haptic.json" },
+    "scent": { "path": "config/scent.json" },
+    "taste": { "path": "config/taste.json" },
+    "sensory_bus": { "path": "config/sensory_bus.json" }
+  },
+  "terrain": {
+    "voxel_size_m": 0.1,
+    "chunk_dim": [32, 32, 32],
+    "world_bounds_chunks": [512, 128, 512]
+  },
+  "assets": [],
+  "requires": {
+    "optional_hardware": ["dualsense"],
+    "feature_flags": ["weather_cycle", "npc_memory"]
+  }
+}

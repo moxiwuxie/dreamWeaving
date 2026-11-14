@@ -1,0 +1,25 @@
+{
+  "schema_version": "0.1.0",
+  "scent_lib": [
+    { "id": "scent_pine", "name": "松脂", "category": "woody", "base_intensity": 0.5, "descriptors": ["树脂", "清冽"] },
+    { "id": "scent_soil", "name": "湿土", "category": "earthy", "base_intensity": 0.4, "descriptors": ["泥土", "雨后"] },
+    { "id": "scent_bread", "name": "烤面包", "category": "food", "base_intensity": 0.8, "descriptors": ["麦香", "焦糖"] },
+    { "id": "scent_iron", "name": "血腥味", "category": "animal", "base_intensity": 0.9, "descriptors": ["铁锈", "金属"] },
+    { "id": "scent_smoke", "name": "柴烟", "category": "smoky", "base_intensity": 0.7, "descriptors": ["焦木", "烟熏"] }
+  ],
+  "diffusion": {
+    "wind_influence": 0.6,
+    "distance_falloff_exp": 2,
+    "persistence_seconds": 45,
+    "max_concentration": 0.85
+  },
+  "hardware": {
+    "ovr_omara": { "enabled": false, "cartridge_slots": 0 }
+  },
+  "fallback": {
+    "mode": "color_filter",
+    "vfx": "vfx_scent_drift",
+    "sfx": "sfx_scent_hint",
+    "ui_text": "空气中有一丝淡淡的%s气味"
+  }
+}

@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/npc_agent.schema.json",
+  "title": "NPC & Society Agent Config",
+  "description": "M004-03 人文社会模拟内核：三层 NPC（crowd / mass_life / llm_core）、日程、记忆、经济与法律。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "layers", "economy", "laws", "schedule_templates", "npc_roster"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "layers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["crowd", "mass_life", "llm_core"],
+      "properties": {
+        "crowd": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "max_agents", "update_hz", "lod_radius_m"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "max_agents": { "type": "integer", "minimum": 0, "maximum": 2000000 },
+            "update_hz": { "type": "number", "exclusiveMinimum": 0, "maximum": 120 },
+            "lod_radius_m": { "type": "number", "exclusiveMinimum": 0, "maximum": 50000 }
+          }
+        },
+        "mass_life": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "max_agents", "update_hz", "lod_radius_m", "offline_tick_minutes"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "max_agents": { "type": "integer", "minimum": 0, "maximum": 200000 },
+            "update_hz": { "type": "number", "exclusiveMinimum": 0, "maximum": 120 },
+            "lod_radius_m": { "type": "number", "exclusiveMinimum": 0, "maximum": 50000 },
+            "offline_tick_minutes": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 1440,
+              "description": "远区低精度离线 tick 周期，用于距离分级 LOD 模拟。"
+            }
+          }
+        },
+        "llm_core": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "max_active_agents", "memory_window_tokens", "model_ref"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "max_active_agents": { "type": "integer", "minimum": 0, "maximum": 256 },
+            "memory_window_tokens": { "type": "integer", "minimum": 256, "maximum": 1000000 },
+            "model_ref": { "type": "string", "maxLength": 128, "description": "模型路由标识，由 M006-04 解析，不在配置中写死厂商。" }
+          }
+        }
+      }
+    },
+    "economy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["currency", "inflation_target", "goods"],
+      "properties": {
+        "currency": { "type": "string", "minLength": 1, "maxLength": 16 },
+        "inflation_target": { "type": "number", "minimum": -0.5, "maximum": 1 },
+        "goods": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "base_price", "unit", "supply_elasticity", "demand_elasticity"],
+            "properties": {
+              "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+              "name": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/display_name" },
+              "base_price": { "type": "number", "minimum": 0 },
+              "unit": { "type": "string", "minLength": 1, "maxLength": 16 },
+              "supply_elasticity": { "type": "number", "minimum": -10, "maximum": 10 },
+              "demand_elasticity": { "type": "number", "minimum": -10, "maximum": 10 }
+            }
+          }
+        }
+      }
+    },
+    "laws": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description", "severity", "applies_to"],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "description": { "type": "string", "minLength": 1, "maxLength": 512 },
+          "severity": { "type": "string", "enum": ["advisory", "minor", "major", "capital"] },
+          "applies_to": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string", "enum": ["crowd", "mass_life", "llm_core", "player"] }
+          }
+        }
+      }
+    },
+    "schedule_templates": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "entries"],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "entries": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 24,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["start_minute", "end_minute", "activity", "location"],
+              "properties": {
+                "start_minute": { "type": "integer", "minimum": 0, "maximum": 1439 },
+                "end_minute": { "type": "integer", "minimum": 0, "maximum": 1440 },
+                "activity": {
+                  "type": "string",
+                  "enum": ["sleep", "eat", "work", "commute", "socialize", "leisure", "shop", "worship", "patrol"]
+                },
+                "location": { "type": "string", "minLength": 1, "maxLength": 64 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "location_scene_map": {
+      "type": "object",
+      "description": "日程地点名到场景 id 的映射；未命中的地点回退到 NPC 常驻场景。",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]{1,63}$" },
+      "additionalProperties": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" }
+    },
+    "npc_roster": {
+      "type": "array",
+      "maxItems": 2048,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "layer", "persona", "memory", "relations"],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "name": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/display_name" },
+          "layer": { "type": "string", "enum": ["crowd", "mass_life", "llm_core"] },
+          "scene_id": {
+            "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref",
+            "description": "常驻场景 id，需存在于 scenes.scenes；缺省视为不在任何场景内。"
+          },
+          "schedule_template": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+          "persona": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["traits", "goals"],
+            "properties": {
+              "traits": {
+                "type": "object",
+                "description": "大五人格量表，0~1。",
+                "additionalProperties": false,
+                "properties": {
+                  "openness": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+                  "conscientiousness": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+                  "extraversion": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+                  "agreeableness": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+                  "neuroticism": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+                }
+              },
+              "goals": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 8,
+                "items": { "type": "string", "maxLength": 128 }
+              },
+              "speech_style": { "type": "string", "maxLength": 128 }
+            }
+          },
+          "memory": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["capacity", "seed_events"],
+            "properties": {
+              "capacity": { "type": "integer", "minimum": 1, "maximum": 100000 },
+              "seed_events": {
+                "type": "array",
+                "maxItems": 512,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["day", "summary", "salience"],
+                  "properties": {
+                    "day": { "type": "integer", "minimum": 0 },
+                    "summary": { "type": "string", "minLength": 1, "maxLength": 256 },
+                    "salience": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+                  }
+                }
+              }
+            }
+          },
+          "relations": {
+            "type": "array",
+            "maxItems": 128,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["target", "trust", "familiarity"],
+              "properties": {
+                "target": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+                "trust": { "type": "number", "minimum": -1, "maximum": 1 },
+                "familiarity": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/sensory_haptic.schema.json",
+  "title": "Haptic Feedback Config (M002-03)",
+  "description": "DualSense 自适应扳机与震动、屏幕软震动，以及 bHaptics / OWO / Dexmo 进阶外设。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "devices", "vibration_wave_library", "trigger_resistance_curve", "event_wave_map"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "devices": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dualsense", "screen_rumble", "bhaptics", "owo_vest", "dexmo"],
+      "properties": {
+        "dualsense": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "trigger_strength"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "trigger_strength": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+          }
+        },
+        "screen_rumble": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "intensity"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "intensity": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+          }
+        },
+        "bhaptics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "vest_nodes"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "vest_nodes": { "type": "integer", "minimum": 0, "maximum": 64 }
+          }
+        },
+        "owo_vest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "electrode_pairs"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "electrode_pairs": { "type": "integer", "minimum": 0, "maximum": 16 }
+          }
+        },
+        "dexmo": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "force_limit_n"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "force_limit_n": { "type": "number", "minimum": 0, "maximum": 100 }
+          }
+        }
+      }
+    },
+    "vibration_wave_library": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "waveform", "frequency_hz", "amplitude", "duration_ms"],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "waveform": { "type": "string", "enum": ["sine", "square", "saw", "noise", "pulse", "ramp"] },
+          "frequency_hz": { "type": "number", "exclusiveMinimum": 0, "maximum": 1000 },
+          "amplitude": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+          "duration_ms": { "type": "integer", "minimum": 1, "maximum": 10000 }
+        }
+      }
+    },
+    "trigger_resistance_curve": {
+      "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/response_curve",
+      "description": "扳机阻力随按压行程变化，input/output 归一化。"
+    },
+    "event_wave_map": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["event", "wave_id", "gain"],
+        "properties": {
+          "event": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$" },
+          "wave_id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+          "gain": { "type": "number", "minimum": 0, "maximum": 2 }
+        }
+      }
+    }
+  }
+}

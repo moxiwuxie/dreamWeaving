@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/player_body.schema.json",
+  "title": "Player Physiology Kernel Config",
+  "description": "M004-04 玩家生理模拟内核。生理量驱动 M002 五感反馈（status_effects 直接挂接 VFX/音效/触觉）。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "vitals", "injury", "immunity", "status_effects"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "vitals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["temperature", "hunger", "thirst", "fatigue", "oxygen"],
+      "properties": {
+        "temperature": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["baseline_c", "comfort_ambient_range_c", "critical_low_c", "critical_high_c"],
+          "properties": {
+            "baseline_c": { "type": "number", "minimum": 20, "maximum": 50, "description": "核心体温基准，摄氏度。" },
+            "comfort_ambient_range_c": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": { "type": "number", "minimum": -100, "maximum": 100 },
+              "description": "体感舒适的环境温度区间，用于与世界环境温度做跨模块校验。"
+            },
+            "critical_low_c": { "type": "number", "minimum": 0, "maximum": 50, "description": "核心体温下限，低于则进入失温。" },
+            "critical_high_c": { "type": "number", "minimum": 0, "maximum": 60, "description": "核心体温上限，高于则进入热衰竭。" }
+          }
+        },
+        "hunger": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["drain_per_hour", "starvation_threshold", "damage_per_hour"],
+          "properties": {
+            "drain_per_hour": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "starvation_threshold": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "damage_per_hour": { "type": "number", "minimum": 0, "maximum": 100 }
+          }
+        },
+        "thirst": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["drain_per_hour", "dehydration_threshold", "damage_per_hour"],
+          "properties": {
+            "drain_per_hour": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "dehydration_threshold": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "damage_per_hour": { "type": "number", "minimum": 0, "maximum": 100 }
+          }
+        },
+        "fatigue": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["drain_per_hour_awake", "recovery_per_hour_asleep", "collapse_threshold"],
+          "properties": {
+            "drain_per_hour_awake": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "recovery_per_hour_asleep": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "collapse_threshold": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+          }
+        },
+        "oxygen": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["capacity_seconds", "regen_per_second", "drowning_damage_per_second"],
+          "properties": {
+            "capacity_seconds": { "type": "number", "exclusiveMinimum": 0, "maximum": 600 },
+            "regen_per_second": { "type": "number", "minimum": 0, "maximum": 100 },
+            "drowning_damage_per_second": { "type": "number", "minimum": 0, "maximum": 100 }
+          }
+        }
+      }
+    },
+    "injury": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bleed_rate_per_min", "heal_rate_per_day", "fracture_energy_joule", "pain_curve"],
+      "properties": {
+        "bleed_rate_per_min": { "type": "number", "minimum": 0, "maximum": 100 },
+        "heal_rate_per_day": { "type": "number", "minimum": 0, "maximum": 100 },
+        "fracture_energy_joule": { "type": "number", "exclusiveMinimum": 0, "maximum": 100000 },
+        "pain_curve": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/response_curve" }
+      }
+    },
+    "immunity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_resistance", "infection_chance_per_contact", "recovery_rate_per_hour"],
+      "properties": {
+        "base_resistance": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "infection_chance_per_contact": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "recovery_rate_per_hour": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+      }
+    },
+    "survival": {
+      "type": "object",
+      "description": "自动进食/饮水策略层；缺省时使用运行时默认值。",
+      "additionalProperties": false,
+      "properties": {
+        "auto_eat": { "type": "boolean" },
+        "auto_drink": { "type": "boolean" },
+        "eat_threshold": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "drink_threshold": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "eat_rate_per_hour": { "type": "number", "minimum": 0, "maximum": 2 },
+        "drink_rate_per_hour": { "type": "number", "minimum": 0, "maximum": 4 }
+      }
+    },
+    "status_effects": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "trigger", "threshold", "feedback", "modifiers"],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "temperature_low",
+              "temperature_high",
+              "hunger_low",
+              "thirst_low",
+              "fatigue_high",
+              "oxygen_low",
+              "bleeding",
+              "infection",
+              "pain_high"
+            ]
+          },
+          "threshold": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+          "feedback": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/sensory_feedback" },
+          "modifiers": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "speed_multiplier": { "type": "number", "minimum": 0, "maximum": 10 },
+              "stamina_multiplier": { "type": "number", "minimum": 0, "maximum": 10 },
+              "vision_blur": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+              "hearing_loss": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

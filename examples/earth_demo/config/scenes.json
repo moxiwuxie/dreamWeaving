@@ -1,0 +1,95 @@
+{
+  "schema_version": "0.1.0",
+  "scenes": [
+    {
+      "id": "city_core",
+      "name": "城市中心",
+      "category": "built",
+      "physics_preset": "earth",
+      "biome_ref": "grassland",
+      "bounds": { "min_chunk": [0, 0, 0], "max_chunk": [63, 31, 63] },
+      "uef": {
+        "gravity": -9.81,
+        "medium": { "kind": "air", "density_kg_m3": 1.225, "pressure_kpa": 101.3, "sound_speed_mps": 343, "viscosity_pa_s": 0.000018 },
+        "energy": { "ambient_temperature_c": 18, "solar_irradiance_scale": 0.8, "radiation_scale": 1, "thermal_gradient_c_per_m": -0.0065 },
+        "terrain": { "elevation_m": 0, "relief_m": 5, "slope_deg": 1, "enclosure": 0 },
+        "resources": { "water_availability": 0.7, "biomass": 0.1, "mineral_richness": 0.2, "breathable_oxygen": 1 },
+        "society": { "population_density_per_km2": 12000, "built_density": 0.95, "law_presence": 0.9 }
+      },
+      "hazards": [{ "kind": "toxic", "severity": 0.2, "note": "轻度空气污染" }],
+      "sensory": { "reverb_preset": "outdoor_open", "ambient_light_ev": 4 }
+    },
+    {
+      "id": "farmland",
+      "name": "农田",
+      "category": "built",
+      "physics_preset": "earth",
+      "biome_ref": "grassland",
+      "bounds": { "min_chunk": [64, 0, 0], "max_chunk": [191, 31, 95] },
+      "uef": {
+        "gravity": -9.81,
+        "medium": { "kind": "air", "density_kg_m3": 1.225, "pressure_kpa": 101.3, "sound_speed_mps": 343, "viscosity_pa_s": 0.000018 },
+        "energy": { "ambient_temperature_c": 16, "solar_irradiance_scale": 1, "radiation_scale": 1, "thermal_gradient_c_per_m": -0.0065 },
+        "terrain": { "elevation_m": 20, "relief_m": 10, "slope_deg": 1, "enclosure": 0 },
+        "resources": { "water_availability": 0.85, "biomass": 0.85, "mineral_richness": 0.4, "breathable_oxygen": 1 },
+        "society": { "population_density_per_km2": 60, "built_density": 0.15, "law_presence": 0.5 }
+      }
+    },
+    {
+      "id": "mountain_range",
+      "name": "山地",
+      "category": "natural",
+      "physics_preset": "earth",
+      "biome_ref": "temperate_forest",
+      "bounds": { "min_chunk": [192, 0, 0], "max_chunk": [319, 63, 127] },
+      "uef": {
+        "gravity": -9.81,
+        "medium": { "kind": "air", "density_kg_m3": 1.225, "pressure_kpa": 101.3, "sound_speed_mps": 343, "viscosity_pa_s": 0.000018 },
+        "energy": { "ambient_temperature_c": 5, "solar_irradiance_scale": 1, "radiation_scale": 1, "thermal_gradient_c_per_m": -0.0065 },
+        "terrain": { "elevation_m": 1800, "relief_m": 1200, "slope_deg": 25, "enclosure": 0 },
+        "resources": { "water_availability": 0.7, "biomass": 0.5, "mineral_richness": 0.7, "breathable_oxygen": 1 },
+        "society": { "population_density_per_km2": 5, "built_density": 0.02, "law_presence": 0.1 }
+      },
+      "hazards": [
+        { "kind": "fall", "severity": 0.5, "note": "陡坡与落石" },
+        { "kind": "hypothermia", "severity": 0.3, "note": "高海拔低温" }
+      ],
+      "sensory": { "reverb_preset": "forest", "ambient_light_ev": 3 }
+    },
+    {
+      "id": "forest",
+      "name": "森林",
+      "category": "natural",
+      "physics_preset": "earth",
+      "biome_ref": "temperate_forest",
+      "bounds": { "min_chunk": [320, 0, 0], "max_chunk": [447, 63, 127] },
+      "uef": {
+        "gravity": -9.81,
+        "medium": { "kind": "air", "density_kg_m3": 1.225, "pressure_kpa": 101.3, "sound_speed_mps": 343, "viscosity_pa_s": 0.000018 },
+        "energy": { "ambient_temperature_c": 13, "solar_irradiance_scale": 0.7, "radiation_scale": 1, "thermal_gradient_c_per_m": -0.0065 },
+        "terrain": { "elevation_m": 400, "relief_m": 120, "slope_deg": 8, "enclosure": 0.2 },
+        "resources": { "water_availability": 0.85, "biomass": 1, "mineral_richness": 0.4, "breathable_oxygen": 1 },
+        "society": { "population_density_per_km2": 6, "built_density": 0.02, "law_presence": 0.2 }
+      },
+      "sensory": { "reverb_preset": "forest", "scent_refs": ["scent_pine"], "ambient_light_ev": 2 }
+    },
+    {
+      "id": "coast",
+      "name": "海岸",
+      "category": "natural",
+      "physics_preset": "earth",
+      "biome_ref": "grassland",
+      "bounds": { "min_chunk": [448, 0, 0], "max_chunk": [511, 31, 63] },
+      "uef": {
+        "gravity": -9.81,
+        "medium": { "kind": "air", "density_kg_m3": 1.225, "pressure_kpa": 101.3, "sound_speed_mps": 343, "viscosity_pa_s": 0.000018 },
+        "energy": { "ambient_temperature_c": 18, "solar_irradiance_scale": 1, "radiation_scale": 1, "thermal_gradient_c_per_m": -0.0065 },
+        "terrain": { "elevation_m": 3, "relief_m": 10, "slope_deg": 2, "enclosure": 0 },
+        "resources": { "water_availability": 0.9, "biomass": 0.8, "mineral_richness": 0.4, "breathable_oxygen": 1 },
+        "society": { "population_density_per_km2": 50, "built_density": 0.2, "law_presence": 0.4 }
+      },
+      "hazards": [{ "kind": "drowning", "severity": 0.4, "note": "潮汐与浪涌" }],
+      "sensory": { "reverb_preset": "outdoor_open", "scent_refs": ["scent_pine"], "ambient_light_ev": 6 }
+    }
+  ]
+}

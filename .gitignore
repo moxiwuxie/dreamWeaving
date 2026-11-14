@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# 测试与覆盖率
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# 运行时持久化状态与截图
+.dreamweave/
+examples/.dreamweave/
+.screenshots/
+
+# 系统文件
+.DS_Store

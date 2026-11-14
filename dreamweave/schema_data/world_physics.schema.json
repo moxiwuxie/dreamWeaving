@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/world_physics.schema.json",
+  "title": "World Physics Kernel Config",
+  "description": "M004-01 物理场模拟内核。所有物理常数均可被玩家/编辑器/AI 接口改写，单位一律 SI。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "preset",
+    "gravity",
+    "air_density",
+    "speed_of_sound",
+    "friction",
+    "fluid",
+    "thermal",
+    "combustion",
+    "rigid_body",
+    "coupling_tick_order"
+  ],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "preset": {
+      "type": "string",
+      "enum": ["earth", "moon", "mars", "zero_g", "fantasy", "custom"],
+      "description": "预设仅作为初始值来源，保存后各字段即独立，不再受预设牵引。"
+    },
+    "gravity": {
+      "type": "number",
+      "minimum": -100,
+      "maximum": 100,
+      "description": "重力加速度 m/s²，负值向下。地球基准 -9.81。"
+    },
+    "air_density": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 200,
+      "description": "空气密度 kg/m³，地球海平面 1.225。影响流体、燃烧与声音传播。"
+    },
+    "speed_of_sound": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 20000,
+      "description": "参考介质声速 m/s，地球空气 343。"
+    },
+    "friction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["static", "dynamic", "rolling"],
+      "properties": {
+        "static": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/non_negative" },
+        "dynamic": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/non_negative" },
+        "rolling": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/non_negative" }
+      }
+    },
+    "fluid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["viscosity", "surface_tension", "turbulence_scale"],
+      "properties": {
+        "viscosity": { "type": "number", "minimum": 0, "maximum": 1000, "description": "动力粘度 Pa·s，水约 0.001。" },
+        "surface_tension": { "type": "number", "minimum": 0, "maximum": 100, "description": "N/m。" },
+        "turbulence_scale": {
+          "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized",
+          "description": "大涡模拟的湍流强度缩放，1 为真实基准。"
+        }
+      }
+    },
+    "thermal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ambient_temperature_c", "air_heat_capacity", "conductivity_scale", "radiation_scale"],
+      "properties": {
+        "ambient_temperature_c": { "type": "number", "minimum": -273.15, "maximum": 5000 },
+        "air_heat_capacity": { "type": "number", "exclusiveMinimum": 0, "description": "J/(kg·K)，地球约 1005。" },
+        "conductivity_scale": {
+          "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized"
+        },
+        "radiation_scale": {
+          "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized"
+        }
+      }
+    },
+    "combustion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ignition_temperature_c", "burn_rate", "oxygen_consumption", "smoke_yield"],
+      "properties": {
+        "ignition_temperature_c": { "type": "number", "minimum": -273.15, "maximum": 5000 },
+        "burn_rate": { "type": "number", "minimum": 0, "maximum": 100, "description": "kg/(m²·s)。" },
+        "oxygen_consumption": { "type": "number", "minimum": 0, "description": "单位燃料消耗氧气质量比。" },
+        "smoke_yield": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+      }
+    },
+    "deformation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "形变/断裂参数，M003 体素应力状态的承载体。",
+      "properties": {
+        "youngs_modulus_gpa": { "type": "number", "minimum": 0.0001, "maximum": 2000 },
+        "poisson_ratio": { "type": "number", "minimum": -0.99, "maximum": 0.5 },
+        "fracture_stress_mpa": { "type": "number", "minimum": 0, "maximum": 10000 }
+      }
+    },
+    "rigid_body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["substeps", "sleep_threshold", "max_contact_pairs"],
+      "properties": {
+        "substeps": { "type": "integer", "minimum": 1, "maximum": 32 },
+        "sleep_threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "max_contact_pairs": { "type": "integer", "minimum": 64, "maximum": 10000000 }
+      }
+    },
+    "coupling_tick_order": {
+      "type": "array",
+      "description": "各物理场每帧求解顺序，直接影响稳定性与算力分布。",
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["thermal", "fluid", "combustion", "deformation", "rigid_body"]
+      }
+    }
+  }
+}

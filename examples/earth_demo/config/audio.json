@@ -1,0 +1,46 @@
+{
+  "schema_version": "0.1.0",
+  "backend": {
+    "spatializer": "steam_audio",
+    "mixer": "metasounds",
+    "sample_rate_hz": 48000,
+    "ambisonics": "third_order",
+    "hrtf_profile": "steam_audio_default",
+    "max_simultaneous_sources": 64
+  },
+  "listener": {
+    "follow": "camera",
+    "update_rate_hz": 60
+  },
+  "scene_reverb_map": {
+    "farmland": "outdoor_open"
+  },
+  "hrtf_enabled": true,
+  "reverb_preset": "outdoor_open",
+  "occlusion_attenuation": 0.8,
+  "layer_gain": {
+    "far": 0.4,
+    "mid": 0.7,
+    "near": 1
+  },
+  "material_sound_map": {
+    "wood": {
+      "impact": "sfx_wood_impact",
+      "friction": "sfx_wood_friction",
+      "break": "sfx_wood_break",
+      "step": "sfx_wood_step"
+    },
+    "stone": {
+      "impact": "sfx_stone_impact",
+      "friction": "sfx_stone_friction",
+      "break": "sfx_stone_break",
+      "step": "sfx_stone_step"
+    },
+    "soil": {
+      "impact": "sfx_soil_impact",
+      "friction": "sfx_soil_friction",
+      "break": "sfx_soil_break",
+      "step": "sfx_soil_step"
+    }
+  }
+}

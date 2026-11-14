@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/world_scenes.schema.json",
+  "title": "World Scene Graph",
+  "description": "M003/M004 场景层：用统一环境场（UEF）把城市、海洋、海底、太空等全部空间单元描述为同一组六轴参数。场景只声明环境事实，物理/生态/五感模块按 UEF 推导取值，避免每类场景各写一套规则。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scenes"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "scenes": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "category", "bounds", "uef"],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "name": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/display_name" },
+          "category": {
+            "type": "string",
+            "enum": ["natural", "built", "transition", "extraterrestrial", "fantasy"],
+            "description": "场景来源分类，只影响编辑器分组，不改变模拟规则。"
+          },
+          "physics_preset": {
+            "type": "string",
+            "enum": ["earth", "moon", "mars", "zero_g", "fantasy", "custom"],
+            "description": "该场景引用的物理预设；缺省继承世界级 physics.preset。"
+          },
+          "biome_ref": {
+            "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref",
+            "description": "指向 ecology.ecosystem.biomes 的群落 id，供生态内核做物种分布。"
+          },
+          "bounds": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["min_chunk", "max_chunk"],
+            "properties": {
+              "min_chunk": { "$ref": "#/$defs/chunk_coord" },
+              "max_chunk": { "$ref": "#/$defs/chunk_coord" }
+            },
+            "description": "场景在世界 Chunk 空间中的闭区间包围盒，同层场景不得重叠。"
+          },
+          "uef": { "$ref": "#/$defs/uef" },
+          "hazards": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "severity"],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "hypoxia",
+                    "hypothermia",
+                    "hyperthermia",
+                    "dehydration",
+                    "radiation",
+                    "pressure",
+                    "drowning",
+                    "toxic",
+                    "fall",
+                    "hostile_fauna",
+                    "visibility",
+                    "isolation"
+                  ]
+                },
+                "severity": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+                "note": { "type": "string", "maxLength": 128 }
+              }
+            }
+          },
+          "sensory": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "reverb_preset": {
+                "type": "string",
+                "enum": ["outdoor_open", "forest", "cave", "small_room", "cathedral", "underwater", "custom"],
+                "description": "覆盖世界级 audio.reverb_preset。"
+              },
+              "scent_refs": {
+                "type": "array",
+                "maxItems": 8,
+                "items": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+                "description": "该场景常驻气味，需存在于 scent.scent_lib。"
+              },
+              "ambient_light_ev": {
+                "type": "number",
+                "minimum": -20,
+                "maximum": 20,
+                "description": "环境光照 EV，驱动 visual.exposure 与明暗适应。"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "chunk_coord": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "integer", "minimum": 0 }
+    },
+    "uef": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "统一环境场：六轴字段足够描述地球上与地外的任何空间单元。",
+      "required": ["gravity", "medium", "energy", "terrain", "resources", "society"],
+      "properties": {
+        "gravity": {
+          "type": "number",
+          "minimum": -100,
+          "maximum": 100,
+          "description": "轴 1 重力场，m/s²，负值向下。"
+        },
+        "medium": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "轴 2 介质：决定声音、浮力、燃烧与传播衰减。",
+          "required": ["kind", "density_kg_m3", "pressure_kpa", "sound_speed_mps", "viscosity_pa_s"],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["vacuum", "thin_air", "air", "water", "seawater", "soil", "ice", "plasma"]
+            },
+            "density_kg_m3": { "type": "number", "minimum": 0, "maximum": 5000 },
+            "pressure_kpa": { "type": "number", "minimum": 0, "maximum": 200000 },
+            "sound_speed_mps": { "type": "number", "minimum": 0, "maximum": 20000 },
+            "viscosity_pa_s": { "type": "number", "minimum": 0, "maximum": 1000000 }
+          }
+        },
+        "energy": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "轴 3 能量收支：辐照、环境温度、垂直梯度与辐射。",
+          "required": ["ambient_temperature_c", "solar_irradiance_scale", "radiation_scale", "thermal_gradient_c_per_m"],
+          "properties": {
+            "ambient_temperature_c": { "type": "number", "minimum": -273.15, "maximum": 5000 },
+            "solar_irradiance_scale": {
+              "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized",
+              "description": "1=地球海平面日均辐照，0=无光（洞穴、深海、太空背阴面）。"
+            },
+            "radiation_scale": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "thermal_gradient_c_per_m": { "type": "number", "minimum": -1, "maximum": 1 }
+          }
+        },
+        "terrain": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "轴 4 几何形态：海拔、起伏、坡度、封闭度。",
+          "required": ["elevation_m", "relief_m", "slope_deg", "enclosure"],
+          "properties": {
+            "elevation_m": { "type": "number", "minimum": -12000, "maximum": 1000000 },
+            "relief_m": { "type": "number", "minimum": 0, "maximum": 100000 },
+            "slope_deg": { "type": "number", "minimum": 0, "maximum": 90 },
+            "enclosure": {
+              "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized",
+              "description": "0=完全开阔，1=完全封闭（洞穴/室内/水下舱室）。"
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "轴 5 资源供给：水、生物量、矿产、可呼吸氧。",
+          "required": ["water_availability", "biomass", "mineral_richness", "breathable_oxygen"],
+          "properties": {
+            "water_availability": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "biomass": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "mineral_richness": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "breathable_oxygen": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+          }
+        },
+        "society": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "轴 6 社会密度：人口、建成度、秩序强度。",
+          "required": ["population_density_per_km2", "built_density", "law_presence"],
+          "properties": {
+            "population_density_per_km2": { "type": "number", "minimum": 0, "maximum": 200000 },
+            "built_density": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "law_presence": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+          }
+        }
+      }
+    }
+  }
+}

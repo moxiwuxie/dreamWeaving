@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>织梦 · 3D 世界</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<canvas id="gl-canvas"></canvas>
+<canvas id="weather-layer" aria-hidden="true"></canvas>
+<div id="npc-tags" aria-hidden="true"></div>
+<div id="quest-markers" aria-hidden="true"></div>
+<div id="crosshair" aria-hidden="true"></div>
+
+<header id="topbar">
+  <div class="brand">
+    <h1>DREAM<span>WEAVE</span></h1>
+    <div id="world-name">正在连接世界</div>
+  </div>
+  <div class="clock-block">
+    <div id="clock">第 1 天 00:00</div>
+    <div id="weather-label">天气加载中</div>
+  </div>
+  <div id="scene-name" class="scene-chip">未知场景</div>
+  <div class="time-actions">
+    <button type="button" data-tick="10">+10 分</button>
+    <button type="button" data-tick="60">+1 小时</button>
+    <button type="button" data-tick="360">+6 小时</button>
+    <button type="button" data-tick="1440">+1 天</button>
+    <button type="button" id="advance" class="primary">推进剧情 +1 天</button>
+    <button type="button" id="reset">重置</button>
+    <button type="button" id="ui-toggle" title="隐藏或显示数据面板">隐藏面板</button>
+    <button type="button" id="controls-toggle" title="隐藏或显示屏幕方向键">方向键 · 隐藏</button>
+  </div>
+</header>
+
+<aside id="status-panel" class="glass">
+  <h2>角色状态</h2>
+  <div id="vitals" class="bars"></div>
+  <div id="survival-chips" class="chips"></div>
+  <div id="effects" class="chips"></div>
+  <div id="position-line" class="small muted pos">坐标 —</div>
+</aside>
+
+<aside id="side-panels">
+  <details class="panel glass" id="quest-panel" open>
+    <summary><span>任务</span><span class="count" id="quest-progress">0/0</span></summary>
+    <div class="body" id="quest-list">
+      <div class="muted small">等待世界数据</div>
+    </div>
+  </details>
+
+  <details class="panel glass" id="tension-panel">
+    <summary><span>结构压力</span><span class="count" id="tension-count">0</span></summary>
+    <div class="body" id="tension-list">
+      <div class="muted small">暂无矛盾</div>
+    </div>
+  </details>
+
+  <details class="panel glass" id="chronicle-panel">
+    <summary><span>编年史</span><span class="count">最近</span></summary>
+    <div class="body" id="chronicle-list">
+      <div class="muted small">尚无记录</div>
+    </div>
+  </details>
+
+  <details class="panel glass" id="event-panel">
+    <summary><span>事件流</span><span class="count">最近</span></summary>
+    <div class="body" id="event-list">
+      <div class="muted small">暂无事件</div>
+    </div>
+  </details>
+
+  <details class="panel glass" id="recap-panel" open>
+    <summary><span>记忆回放</span><span class="count">时间压缩</span></summary>
+    <div class="body">
+      <div class="mini-actions">
+        <button type="button" data-timeflow="1">压缩 1 天</button>
+        <button type="button" data-timeflow="7">压缩 7 天</button>
+        <button type="button" data-timeflow="30">压缩 30 天</button>
+      </div>
+      <div id="recap-body">
+        <div class="muted small">压缩推进后，这里回放关键感知节点。</div>
+      </div>
+    </div>
+  </details>
+
+  <details class="panel glass" id="action-panel">
+    <summary><span>最近操作</span><span class="count">最近</span></summary>
+    <div class="body" id="action-list">
+      <div class="muted small">尚未执行任务</div>
+    </div>
+  </details>
+
+  <details class="panel glass" id="gallery-panel">
+    <summary><span>概念原画集</span><span class="count">AI 生成</span></summary>
+    <div class="body" id="gallery-body">
+      <div class="muted small">世界场景的概念原画。</div>
+    </div>
+  </details>
+</aside>
+
+<div id="hint">点击画面锁定鼠标 · WASD 移动 · Shift 疾跑 · E/F/R/Q 交互 · V 切换视角 · Esc 释放鼠标</div>
+
+<div id="interact" class="hidden">
+  <div class="target" id="interact-target"></div>
+  <div class="verbs" id="interact-verbs"></div>
+</div>
+
+<div id="carry-chip" class="hidden">
+  <span id="carry-name"></span>
+  <button type="button" data-drop>R 放下</button>
+</div>
+
+<div id="note-editor" class="hidden">
+  <div class="note-card glass">
+    <h3>在告示板上书写</h3>
+    <textarea id="note-input" maxlength="60" rows="3" placeholder="写点什么……最多 60 字"></textarea>
+    <div class="note-actions">
+      <span class="note-count" id="note-count">0/60</span>
+      <button type="button" id="note-cancel">取消</button>
+      <button type="button" id="note-submit" class="primary">写下</button>
+    </div>
+  </div>
+</div>
+
+<div id="dialogue" class="hidden">
+  <div class="speaker" id="dialogue-speaker"></div>
+  <div class="line" id="dialogue-line"></div>
+</div>
+
+<div id="touch-controls" aria-label="触屏操作">
+  <button type="button" data-move="forward" data-key="w" class="move-up">W</button>
+  <button type="button" data-move="left" data-key="a" class="move-left">A</button>
+  <button type="button" data-move="back" data-key="s" class="move-down">S</button>
+  <button type="button" data-move="right" data-key="d" class="move-right">D</button>
+  <button type="button" id="view-toggle" class="move-view">V 视角</button>
+  <button type="button" id="sprint-toggle" class="move-run">跑</button>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="loading" class="show">
+  <div class="loading-card">
+    <div class="spinner" aria-hidden="true"></div>
+    <p id="loading-text">正在载入世界</p>
+    <p class="tiny">原生 WebGL 渲染 · 无外部资源</p>
+  </div>
+</div>
+
+<div id="webgl-error" hidden>
+  <div class="error-card">
+    <h2>无法启动 3D 视图</h2>
+    <p>当前浏览器未启用 WebGL，或显卡驱动不可用。</p>
+    <p class="tiny">请尝试更新浏览器、开启硬件加速后刷新页面。世界数据与时间推进仍由后端提供。</p>
+  </div>
+</div>
+
+<script type="module" src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/world_manifest.schema.json",
+  "title": "DreamWeave .world Package Manifest",
+  "description": "M001-04 / M005-04 .world 存档包清单。声明分包内容、版本兼容要求与资源依赖，供加载器与 AI 接口校验。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "world_id",
+    "world_name",
+    "world_version",
+    "template",
+    "created_at",
+    "engine",
+    "modules",
+    "terrain",
+    "assets"
+  ],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "world_id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+    "world_name": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/display_name" },
+    "world_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "存档自身版本，遵循语义化版本。"
+    },
+    "template": {
+      "type": "string",
+      "enum": ["blank", "earth", "fantasy", "custom"],
+      "description": "M001-03 世界模板来源。"
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "author": { "type": "string", "maxLength": 64 },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min_loader_version", "target_build"],
+      "properties": {
+        "min_loader_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "可加载该存档的最低游戏版本。"
+        },
+        "target_build": { "type": "string", "maxLength": 64 }
+      }
+    },
+    "modules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["physics", "ecology", "npc_agent", "player_body"],
+      "properties": {
+        "physics": { "$ref": "#/$defs/module_ref" },
+        "ecology": { "$ref": "#/$defs/module_ref" },
+        "npc_agent": { "$ref": "#/$defs/module_ref" },
+        "player_body": { "$ref": "#/$defs/module_ref" },
+        "scenes": { "$ref": "#/$defs/module_ref" },
+        "narrative": { "$ref": "#/$defs/module_ref" },
+        "visual": { "$ref": "#/$defs/module_ref" },
+        "audio": { "$ref": "#/$defs/module_ref" },
+        "haptic": { "$ref": "#/$defs/module_ref" },
+        "scent": { "$ref": "#/$defs/module_ref" },
+        "taste": { "$ref": "#/$defs/module_ref" },
+        "sensory_bus": { "$ref": "#/$defs/module_ref" }
+      },
+      "description": "四大内核配置在包内的相对路径；场景、剧情与五感配置为可选模块，sensory_bus 为统一感官事件总线。"
+    },
+    "terrain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["voxel_size_m", "chunk_dim", "world_bounds_chunks"],
+      "properties": {
+        "voxel_size_m": {
+          "type": "number",
+          "enum": [0.1],
+          "description": "M003-01 约定 10cm 基础精度；变更需提升 schema 版本。"
+        },
+        "chunk_dim": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "integer", "minimum": 8, "maximum": 128 },
+          "description": "体素 Chunk 尺寸，spec 约定 32×32×32。"
+        },
+        "world_bounds_chunks": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "integer", "minimum": 1 },
+          "description": "整包覆盖的 Chunk 范围，用于流送与分包导出。"
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": { "type": "string", "pattern": "^(?!/)(?!.*\\.\\.).+$" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "bytes": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "description": "可选资源依赖清单，路径必须为包内相对路径且不允许路径穿越。"
+    },
+    "requires": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "optional_hardware": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["dualsense", "bhaptics", "owo_vest", "dexmo", "ovr_omara", "vocktail"]
+          }
+        },
+        "feature_flags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$" }
+        }
+      },
+      "description": "M002 外设扩展与可选特性声明；缺失时对应感官反馈自动降级。"
+    },
+    "checksum": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "清单自身的完整性摘要，由导出器写入。"
+    }
+  },
+  "$defs": {
+    "module_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^(?!/)(?!.*\\.\\.).+\\.json$" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "enabled": { "type": "boolean", "default": true }
+      }
+    }
+  }
+}

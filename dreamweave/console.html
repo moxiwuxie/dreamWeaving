@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DreamWeave · 本地控制台</title>
+<style>
+:root {
+  --bg: #0b0f14; --panel: #121820; --line: #223042; --text: #d9e3ef;
+  --dim: #7d8ea3; --accent: #58c4ff; --good: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+}
+header {
+  position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 16px;
+  align-items: center; justify-content: space-between; padding: 14px 22px;
+  background: rgba(11,15,20,.92); border-bottom: 1px solid var(--line); backdrop-filter: blur(8px);
+}
+h1 { margin: 0; font-size: 17px; letter-spacing: .08em; font-weight: 600; }
+h1 span { color: var(--accent); }
+#world { color: var(--dim); font-size: 12px; }
+#clock { font: 600 22px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; }
+#weather { color: var(--dim); font-size: 12px; text-align: right; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  border: 1px solid var(--line); background: #17202b; color: var(--text);
+  padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 13px;
+}
+button:hover { border-color: var(--accent); color: var(--accent); }
+button.primary { background: #12384a; border-color: #1d5a76; color: #9fe0ff; }
+button:disabled { opacity: .45; cursor: wait; }
+main {
+  display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  gap: 14px; padding: 16px 22px 40px; max-width: 1440px; margin: 0 auto;
+}
+.card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px 16px; min-width: 0;
+}
+.card h2 {
+  margin: 0 0 10px; font-size: 12px; letter-spacing: .12em; color: var(--dim);
+  text-transform: uppercase; font-weight: 600;
+}
+.col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.muted { color: var(--dim); }
+.small { font-size: 12px; }
+.bars { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 20px; margin-top: 8px; }
+.bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); }
+.bar { height: 6px; background: #0b1118; border-radius: 99px; overflow: hidden; margin-top: 3px; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .35s; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip {
+  font-size: 12px; padding: 2px 9px; border-radius: 99px;
+  border: 1px solid var(--line); color: var(--dim);
+}
+.chip.on { color: var(--good); border-color: #256b42; background: #0f2418; }
+.chip.warn { color: var(--warn); border-color: #6b5325; background: #241d0f; }
+.chip.bad { color: var(--bad); border-color: #6b2525; background: #240f0f; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #1b2532; white-space: nowrap; }
+th { color: var(--dim); font-weight: 500; font-size: 11px; letter-spacing: .08em; }
+td.right, th.right { text-align: right; }
+.tag { color: var(--dim); font-size: 11px; border: 1px solid var(--line); padding: 0 6px; border-radius: 4px; }
+.tension { margin-bottom: 10px; }
+.tension .row { font-size: 13px; }
+.quest {
+  border: 1px solid #1b2532; border-radius: 8px; padding: 10px 12px; margin-bottom: 9px;
+}
+.quest:last-child { margin-bottom: 0; }
+.list { display: flex; flex-direction: column; gap: 7px; max-height: 260px; overflow: auto; }
+.item { display: flex; gap: 10px; font-size: 13px; align-items: baseline; }
+.item time { color: var(--dim); font: 11px ui-monospace, Menlo, monospace; min-width: 68px; }
+.item .val { color: var(--accent); }
+#toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+  background: #16212e; border: 1px solid var(--line); color: var(--text);
+  padding: 8px 16px; border-radius: 8px; opacity: 0; pointer-events: none;
+  transition: all .25s; font-size: 13px; max-width: min(720px, 90vw);
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.error { border-color: #6b2525; color: #ffb4b4; }
+@media (max-width: 900px) {
+  main { grid-template-columns: 1fr; padding: 12px; }
+  .bars { grid-template-columns: 1fr; }
+  header { padding: 12px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>DREAM<span>WEAVE</span></h1>
+    <div id="world">加载中…</div>
+  </div>
+  <div>
+    <div id="clock">--</div>
+    <div id="weather">--</div>
+  </div>
+  <div class="actions">
+    <button data-tick="10">+10 分</button>
+    <button data-tick="60">+1 小时</button>
+    <button data-tick="360">+6 小时</button>
+    <button data-tick="1440">+1 天</button>
+    <button class="primary" id="advance">推进剧情 +1 天</button>
+    <button id="reset">重置</button>
+  </div>
+</header>
+<main>
+  <div class="col">
+    <section class="card" id="player"></section>
+    <section class="card" id="sensory"></section>
+    <section class="card" id="npcs"></section>
+    <section class="card" id="ecology"></section>
+  </div>
+  <div class="col">
+    <section class="card" id="tensions"></section>
+    <section class="card" id="quests"></section>
+    <section class="card" id="timeflow"></section>
+    <section class="card" id="chronicle"></section>
+    <section class="card" id="events"></section>
+    <section class="card" id="actions"></section>
+    <section class="card" id="worldmodel"></section>
+    <section class="card" id="physics"></section>
+  </div>
+</main>
+<div id="toast"></div>
+<script>
+const WEATHER = {clear:'晴', rain:'雨', snow:'雪', storm:'风暴', fog:'雾', heatwave:'热浪',
+  coldwave:'寒潮', sandstorm:'沙尘暴', hurricane:'飓风', aurora:'极光'};
+const EVENTS = {weather:'天气', npc_move:'迁移', npc_activity:'日程', effect_on:'状态',
+  effect_off:'恢复', ecology:'生态', survival:'生存'};
+const esc = (v) => String(v ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pct = (v, max) => Math.max(0, Math.min(100, (Number(v) / max) * 100));
+const timeLabel = (minute) => {
+  const day = Math.floor(minute / 1440) + 1;
+  const rest = minute % 1440;
+  const hh = String(Math.floor(rest / 60)).padStart(2, '0');
+  const mm = String(rest % 60).padStart(2, '0');
+  return `D${day} ${hh}:${mm}`;
+};
+
+function bar(label, value, max, tone) {
+  return `<div><div class="bar-label"><span>${label}</span><span>${value}</span></div>
+    <div class="bar"><i style="width:${pct(value, max)}%;${tone ? `background:${tone};` : ''}"></i></div></div>`;
+}
+
+function toast(text, error = false) {
+  const node = document.getElementById('toast');
+  node.textContent = text;
+  node.className = 'show' + (error ? ' error' : '');
+  clearTimeout(node._timer);
+  node._timer = setTimeout(() => { node.className = ''; }, 3200);
+}
+
+async function api(path, body) {
+  const response = await fetch(path, body === undefined ? {} : {
+    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+  });
+  const data = await response.json().catch(() => ({error: response.statusText}));
+  if (!response.ok) throw new Error(data.error || '请求失败');
+  return data;
+}
+
+function render(data) {
+  const snap = data.snapshot, player = snap.player, clock = snap.clock;
+  const scene = data.world.scene;
+  document.getElementById('world').textContent =
+    `${data.world.name || data.world.id} · ${data.world.root}`;
+  document.getElementById('clock').textContent = `第 ${clock.day} 天 ${clock.time}`;
+  document.getElementById('weather').textContent =
+    `${WEATHER[snap.weather?.kind] || snap.weather?.kind || '晴'} · ${snap.ambient_temperature_c}℃ · ` +
+    (scene ? `${scene.name}（${scene.category}）` : '场景外');
+
+  const survival = snap.survival || {};
+  const chips = [
+    ['饮水', survival.drank], ['进食', survival.ate],
+    ['水源', survival.water], ['食物', survival.food]
+  ].map(([label, on]) => `<span class="chip ${on ? 'on' : ''}">${label}${on ? ' ✓' : ''}</span>`).join('');
+  const effects = (snap.effects || []).map(item =>
+    `<span class="chip warn">${esc(item.id)} ${Number(item.severity).toFixed(2)}</span>`).join('');
+  document.getElementById('player').innerHTML = `
+    <h2>角色状态</h2>
+    <div class="bars">
+      ${bar('生命', player.health, 100, player.health < 40 ? '#f87171' : '#4ade80')}
+      ${bar('体温', player.core_temperature_c, 45, player.core_temperature_c < 30 ? '#f87171' : '#58c4ff')}
+      ${bar('饱腹', player.hunger, 1)}
+      ${bar('水分', player.thirst, 1)}
+      ${bar('疲劳', player.fatigue, 1, '#a78bfa')}
+      ${bar('氧气', player.oxygen_seconds, 90, '#38bdf8')}
+    </div>
+    <div class="chips">${chips}${effects}</div>
+    <div class="small muted" style="margin-top:8px">
+      坐标 ${data.world.position_m ? data.world.position_m.map(v => Number(v).toFixed(1)).join(', ') : '未设置'}
+      · 场景 ${scene ? scene.id : '无'}
+    </div>`;
+
+  const sensory = data.sensory || {};
+  const bus = sensory.config || {};
+  const lastSense = sensory.last;
+  const channelChips = Object.entries(bus.channels || {}).map(([name, conf]) => {
+    const devices = (conf.devices || []).filter(device => device.enabled).map(device => device.id);
+    return `<span class="chip ${devices.length ? '' : 'warn'}">${esc(name)} · ${esc(conf.sync_mode)}${devices.length ? ' · ' + devices.map(esc).join('/') : ' · 无设备'}</span>`;
+  }).join('');
+  const senseRows = ((lastSense && lastSense.events) || []).map(plan => {
+    const routes = [], seen = new Set();
+    (plan.deliveries || []).forEach(delivery => {
+      const key = `${delivery.channel}@${delivery.at_ms}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      routes.push(`${delivery.channel}@${Number(delivery.at_ms).toFixed(0)}ms`);
+    });
+    const dropped = (plan.dropped || []).map(drop => drop.reason).join(',');
+    return `<div class="item">
+      <time>${esc(plan.event_id)}</time>
+      <span>${esc(plan.kind)} · ${plan.sync.status === 'degraded' ? '降级' : '同步'} ${Number(plan.sync.skew_ms).toFixed(0)}ms</span>
+      <span class="muted small">${routes.join(' ') || dropped || '无输出'}</span>
+    </div>`;
+  }).join('');
+  const senseButtons = [['impact','敲击'],['step','脚步'],['voice','低语'],['scent','气味'],['taste','进食'],['status','生理状态']]
+    .map(([preset, label]) => `<button data-sensory="${preset}">${label}</button>`).join('');
+  document.getElementById('sensory').innerHTML = `
+    <h2>感官事件总线 · ${bus.sync_window_ms ?? '—'}ms / ${bus.soft_sync_window_ms ?? '—'}ms</h2>
+    <div class="chips">${channelChips}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${senseButtons}</div>
+    <div class="list" style="margin-top:10px">${senseRows || '<div class="muted small">点一个按钮，走一遍事件路由</div>'}</div>
+    ${lastSense ? `<div class="small muted" style="margin-top:8px">派发 ${lastSense.diagnostics.deliveries} · 丢弃 ${lastSense.diagnostics.dropped} · 同步降级 ${lastSense.diagnostics.sync_violations} · 预算裁剪 ${lastSense.diagnostics.budget_culled}</div>` : ''}`;
+
+  const npcs = snap.npcs || [];
+  document.getElementById('npcs').innerHTML = `
+    <h2>NPC 日程（${npcs.length}）</h2>
+    <table><thead><tr><th>角色</th><th>层级</th><th>活动</th><th>地点</th><th>场景</th><th class="right">状态</th></tr></thead>
+    <tbody>${npcs.map(npc => `<tr>
+      <td>${esc(npc.name || npc.npc_id)} <span class="tag">${esc(npc.npc_id)}</span></td>
+      <td class="muted">${esc(npc.layer)}</td>
+      <td>${esc(npc.activity)}</td>
+      <td class="muted">${esc(npc.location)}</td>
+      <td class="muted">${esc(npc.scene_id || '—')}</td>
+      <td class="right ${npc.status === 'sheltered' ? '' : 'muted'}">${npc.status === 'sheltered' ? '避险' : '正常'}</td>
+    </tr>`).join('')}</tbody></table>`;
+
+  const ecology = snap.ecology || [];
+  document.getElementById('ecology').innerHTML = `
+    <h2>生态种群</h2>
+    <div class="bars">${ecology.map(item => bar(
+      `${esc(item.name || item.id)} · ${esc(item.status)}`, Number(item.population).toFixed(2), 1,
+      item.status === 'declining' ? '#fbbf24' : item.status === 'extinct' ? '#f87171' : undefined
+    )).join('')}</div>`;
+
+  const tensions = data.narrative.tensions || [];
+  document.getElementById('tensions').innerHTML = `
+    <h2>结构压力</h2>
+    ${tensions.map(item => `<div class="tension">
+      <div class="row"><span>${esc(item.id)} <span class="tag">${esc(item.stake)}</span></span>
+      <span class="muted small">${esc(item.stage)} · ${Number(item.intensity).toFixed(2)}</span></div>
+      <div class="bar"><i style="width:${pct(item.intensity, 1)}%;background:${
+        item.stage === 'open' || item.stage === 'climax' ? '#f87171' :
+        item.stage === 'escalating' ? '#fbbf24' : '#58c4ff'}"></i></div>
+    </div>`).join('') || '<div class="muted">暂无矛盾</div>'}`;
+
+  const quests = data.quests || [];
+  const doneCount = quests.filter(item => item.completed).length;
+  document.getElementById('quests').innerHTML = `
+    <h2>任务 · 操作生成剧情（${doneCount}/${quests.length}）</h2>
+    ${quests.map(item => `<div class="quest">
+      <div class="row"><strong>${esc(item.title)}</strong>
+        <span class="muted small">${esc(item.scene_name)} · ${esc(item.action_label)} ${item.duration_min} 分</span></div>
+      <div class="small muted">${esc(item.description || '')}</div>
+      <div class="row" style="margin-top:7px">
+        <span class="small muted">${item.completed ? '已完成，编年史已记录' :
+          `完成后写入编年史，矛盾 ${esc(item.tension_id || '—')} +0.05`}</span>
+        <button class="primary" data-quest="${esc(item.id)}" ${item.completed ? 'disabled' : ''}>
+          ${item.completed ? '已完成' : '前往并执行'}</button>
+      </div>
+    </div>`).join('') || '<div class="muted">暂无任务</div>'}`;
+
+  const timeflow = data.timeflow || {}, recap = timeflow.recap;
+  document.getElementById('timeflow').innerHTML = `
+    <h2>时间流速 · 记忆回放</h2>
+    <div class="actions" style="margin-bottom:10px">
+      ${[1, 7, 30].map(days =>
+        `<button data-timeflow="${days}">压缩 ${days} 天</button>`).join('')}
+    </div>
+    ${recap ? `
+      <div class="small">${esc(recap.summary)}</div>
+      <div class="chips">
+        <span class="chip">事件 ${recap.event_count}</span>
+        <span class="chip">节拍 ${recap.beats.length}</span>
+        <span class="chip">密度 ${recap.density}/天</span>
+        <span class="chip">主观 ${recap.subjective_days} 天</span>
+      </div>
+      <div class="list" style="margin-top:10px">${recap.beats.map(beat => `<div class="item">
+        <time>D${beat.day} ${esc(beat.time)}</time>
+        <span class="muted">${esc(beat.label)}</span>
+        <span class="val">${esc(beat.value)}</span></div>`).join('')
+        || '<div class="muted">这段时间没有可感知事件</div>'}</div>`
+      : '<div class="muted small">压缩推进后，这里回放关键感知节点。</div>'}`;
+
+  const chronicle = data.narrative.chronicle || [];
+  document.getElementById('chronicle').innerHTML = `
+    <h2>编年史</h2>
+    <div class="list">${chronicle.map(item => `<div class="item">
+      <time>第 ${item.day} 天</time><span>${esc(item.summary)}</span></div>`).join('')
+      || '<div class="muted">尚无记录</div>'}</div>`;
+
+  const events = (data.events || []).slice().reverse();
+  document.getElementById('events').innerHTML = `
+    <h2>事件流</h2>
+    <div class="list">${events.map(item => `<div class="item">
+      <time>${timeLabel(item.minute)}</time>
+      <span class="muted">${EVENTS[item.type] || esc(item.type)}</span>
+      <span class="val">${esc(item.value)}</span></div>`).join('')
+      || '<div class="muted">暂无事件</div>'}</div>`;
+
+  const actions = (data.actions || []).slice().reverse();
+  document.getElementById('actions').innerHTML = `
+    <h2>操作记录</h2>
+    <div class="list">${actions.map(item => `<div class="item">
+      <time>D${item.day} ${esc(item.time)}</time>
+      <span>${esc(item.title)}</span>
+      <span class="muted small">旅途 ${item.travel_min} 分 + 任务 ${item.duration_min} 分</span>
+    </div>`).join('') || '<div class="muted">尚未执行任务</div>'}</div>`;
+
+  const model = data.model || {};
+  document.getElementById('worldmodel').innerHTML = `
+    <h2>世界模型</h2>
+    <div class="small muted">模板 ${esc(model.template || '—')} · 场景 ${(model.scenes || []).length}
+      · NPC ${model.npc_count ?? 0}</div>
+    <div class="chips">${(model.modules || []).map(module =>
+      `<span class="chip">${esc(module.id)} ${esc(module.schema_version || '')}</span>`).join('')}</div>
+    <div class="small muted" style="margin-top:8px">
+      国家 ${(model.nations || []).map(item => esc(item.name)).join('、') || '—'}<br>
+      阶层 ${(model.classes || []).map(item => esc(item.name)).join('、') || '—'}
+    </div>`;
+
+  const physics = data.physics || {}, initial = data.initial || {};
+  const thermal = physics.thermal || {}, combustion = physics.combustion || {};
+  document.getElementById('physics').innerHTML = `
+    <h2>物理规律 · 初始设定</h2>
+    <div class="small">重力 ${physics.gravity ?? '—'} m/s² · 空气密度 ${physics.air_density ?? '—'}
+      · 声速 ${physics.speed_of_sound ?? '—'} m/s</div>
+    <div class="small muted">热学：环境 ${thermal.ambient_temperature_c ?? '—'}℃
+      · 导热 ${thermal.conductivity_scale ?? '—'} · 辐射 ${thermal.radiation_scale ?? '—'}</div>
+    <div class="small muted">燃烧：燃点 ${combustion.ignition_temperature_c ?? '—'}℃
+      · 耗氧 ${combustion.oxygen_consumption ?? '—'} · 烟 ${combustion.smoke_yield ?? '—'}</div>
+    <div class="small muted">tick：${(physics.coupling_tick_order || []).join(' → ') || '—'}</div>
+    <div class="chips">
+      <span class="chip">模板 ${esc(initial.template || '—')}</span>
+      <span class="chip">seed ${esc(initial.seed ?? '—')}</span>
+      <span class="chip">体温 ${esc(initial.vitals?.temperature_c ?? '—')}℃</span>
+      <span class="chip">出生点 ${(initial.spawn || []).map(v => Number(v).toFixed(0)).join(',') || '—'}</span>
+    </div>`;
+}
+
+let busy = false;
+async function action(path, body) {
+  if (busy) return;
+  busy = true;
+  document.querySelectorAll('button').forEach(btn => { btn.disabled = true; });
+  try {
+    const data = await api(path, body);
+    if (data.state) render(data.state);
+    toast(data.message + (data.errors && data.errors.length ? `：${data.errors[0].message}` : ''),
+      data.accepted === false);
+  } catch (error) {
+    toast(error.message, true);
+  } finally {
+    busy = false;
+    document.querySelectorAll('button').forEach(btn => { btn.disabled = false; });
+  }
+}
+
+document.querySelectorAll('[data-tick]').forEach(btn => {
+  btn.onclick = () => action('/api/tick', {minutes: Number(btn.dataset.tick), step: 60});
+});
+document.getElementById('advance').onclick = () => action('/api/advance', {days: 1});
+document.getElementById('reset').onclick = () => action('/api/reset', {});
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-quest]');
+  if (!button || button.disabled) return;
+  action('/api/act', {quest_id: button.dataset.quest});
+});
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-timeflow]');
+  if (!button || button.disabled) return;
+  action('/api/timeflow', {days: Number(button.dataset.timeflow), step: 60});
+});
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-sensory]');
+  if (!button || button.disabled) return;
+  const preset = button.dataset.sensory;
+  action('/api/sensory', preset === 'status' ? {status: true} : {preset});
+});
+
+async function refresh() {
+  try { render(await api('/api/state')); } catch (error) { /* 服务重启时静默等待 */ }
+}
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>

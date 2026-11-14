@@ -1,0 +1,39 @@
+{
+  "schema_version": "0.1.0",
+  "taste_basic_map": {
+    "sweet": 1,
+    "sour": 1,
+    "salty": 1,
+    "bitter": 1,
+    "umami": 1
+  },
+  "food_bindings": [
+    {
+      "food_id": "bread",
+      "taste": { "sweet": 0.3, "sour": 0.05, "salty": 0.2, "bitter": 0.05, "umami": 0.15 },
+      "texture": "crunchy",
+      "serving_temperature": "warm"
+    },
+    {
+      "food_id": "roast_meat",
+      "taste": { "sweet": 0.1, "sour": 0.05, "salty": 0.5, "bitter": 0.1, "umami": 0.8 },
+      "texture": "fibrous",
+      "serving_temperature": "hot"
+    },
+    {
+      "food_id": "wild_berry",
+      "taste": { "sweet": 0.5, "sour": 0.7, "salty": 0.0, "bitter": 0.1, "umami": 0.0 },
+      "texture": "soft",
+      "serving_temperature": "room"
+    }
+  ],
+  "hardware": {
+    "vocktail": { "enabled": false, "microcurrent_range_ua": 0 }
+  },
+  "fallback": {
+    "mode": "expression",
+    "expression": "expr_savor",
+    "sfx": "sfx_chew_loop",
+    "ui_text": "口感%s，味道%s"
+  }
+}

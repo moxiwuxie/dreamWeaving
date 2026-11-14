@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/world_ecology.schema.json",
+  "title": "World Ecology Kernel Config",
+  "description": "M004-02 地质气象生态内核：板块/侵蚀、大气环流与气象、物种生命周期与食物链。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "geology", "climate", "ecosystem", "species"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "geology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tectonics_enabled", "plate_motion_rate", "uplift_rate", "erosion"],
+      "properties": {
+        "tectonics_enabled": { "type": "boolean" },
+        "plate_motion_rate": { "type": "number", "minimum": 0, "maximum": 10, "description": "cm/年（游戏年）。" },
+        "uplift_rate": { "type": "number", "minimum": 0, "maximum": 100, "description": "m/千游戏年。" },
+        "erosion": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["water", "wind", "freeze_thaw"],
+          "properties": {
+            "water": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "wind": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "freeze_thaw": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+          }
+        }
+      }
+    },
+    "climate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_temperature_c",
+        "greenhouse_factor",
+        "precipitation_scale",
+        "seasonal_amplitude_c",
+        "prevailing_wind",
+        "weather_events"
+      ],
+      "properties": {
+        "base_temperature_c": { "type": "number", "minimum": -100, "maximum": 200 },
+        "greenhouse_factor": {
+          "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized",
+          "description": "0=无温室效应，1=地球当量。"
+        },
+        "precipitation_scale": {
+          "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized"
+        },
+        "seasonal_amplitude_c": { "type": "number", "minimum": 0, "maximum": 100 },
+        "prevailing_wind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["direction_deg", "speed_mps"],
+          "properties": {
+            "direction_deg": { "type": "number", "minimum": 0, "maximum": 360 },
+            "speed_mps": { "type": "number", "minimum": 0, "maximum": 300 }
+          }
+        },
+        "weather_events": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "kind", "probability_per_day", "duration_min", "intensity"],
+            "properties": {
+              "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+              "kind": {
+                "type": "string",
+                "enum": ["rain", "snow", "storm", "fog", "heatwave", "coldwave", "sandstorm", "hurricane", "aurora"]
+              },
+              "probability_per_day": {
+                "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized"
+              },
+              "duration_min": { "type": "number", "exclusiveMinimum": 0, "maximum": 10080 },
+              "intensity": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+              "trigger_conditions": {
+                "type": "array",
+                "maxItems": 8,
+                "items": { "type": "string", "maxLength": 128 },
+                "description": "自然语言可读的前置条件，由 AI 接口层翻译为判定树。"
+              }
+            }
+          }
+        }
+      }
+    },
+    "ecosystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["carrying_capacity_scale", "migration_enabled", "mutation_rate", "biomes"],
+      "properties": {
+        "carrying_capacity_scale": { "type": "number", "minimum": 0, "maximum": 10 },
+        "migration_enabled": { "type": "boolean" },
+        "mutation_rate": { "type": "number", "minimum": 0, "maximum": 1, "description": "每世代性状变异概率。" },
+        "biomes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "temperature_range_c", "humidity_range"],
+            "properties": {
+              "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+              "temperature_range_c": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": { "type": "number", "minimum": -100, "maximum": 200 }
+              },
+              "humidity_range": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "species": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "kingdom",
+          "average_mass_kg",
+          "lifespan_days",
+          "maturity_days",
+          "reproduction_rate",
+          "habitats",
+          "food_web"
+        ],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "name": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/display_name" },
+          "kingdom": {
+            "type": "string",
+            "enum": ["plant", "fungus", "herbivore", "carnivore", "omnivore", "scavenger", "microbe", "fantasy"]
+          },
+          "average_mass_kg": { "type": "number", "exclusiveMinimum": 0, "maximum": 200000 },
+          "lifespan_days": { "type": "number", "exclusiveMinimum": 0, "maximum": 100000 },
+          "maturity_days": { "type": "number", "minimum": 0, "maximum": 100000 },
+          "reproduction_rate": { "type": "number", "minimum": 0, "description": "每成年个体每年新增后代数。" },
+          "habitats": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 16,
+            "items": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" }
+          },
+          "food_web": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["prey", "predators"],
+            "properties": {
+              "prey": {
+                "type": "array",
+                "maxItems": 64,
+                "items": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" }
+              },
+              "predators": {
+                "type": "array",
+                "maxItems": 64,
+                "items": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" }
+              }
+            }
+          },
+          "extinction_risk": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "观测值，运行时由生态内核回写，编辑器只读展示。"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "schema_version": "0.1.0",
+  "geology": {
+    "tectonics_enabled": true,
+    "plate_motion_rate": 2.5,
+    "uplift_rate": 8,
+    "erosion": {
+      "water": 1,
+      "wind": 0.4,
+      "freeze_thaw": 0.3
+    }
+  },
+  "climate": {
+    "base_temperature_c": 15,
+    "greenhouse_factor": 1,
+    "precipitation_scale": 1,
+    "seasonal_amplitude_c": 12,
+    "prevailing_wind": {
+      "direction_deg": 270,
+      "speed_mps": 6
+    },
+    "weather_events": [
+      {
+        "id": "spring_rain",
+        "kind": "rain",
+        "probability_per_day": 0.25,
+        "duration_min": 180,
+        "intensity": 0.5,
+        "trigger_conditions": ["humidity > 0.6", "temperature_c > 5"]
+      },
+      {
+        "id": "summer_storm",
+        "kind": "storm",
+        "probability_per_day": 0.08,
+        "duration_min": 90,
+        "intensity": 0.8,
+        "trigger_conditions": ["temperature_c > 25"]
+      },
+      {
+        "id": "winter_snow",
+        "kind": "snow",
+        "probability_per_day": 0.3,
+        "duration_min": 240,
+        "intensity": 0.6,
+        "trigger_conditions": ["temperature_c < 0"]
+      }
+    ]
+  },
+  "ecosystem": {
+    "carrying_capacity_scale": 1,
+    "migration_enabled": true,
+    "mutation_rate": 0.001,
+    "biomes": [
+      {
+        "id": "temperate_forest",
+        "temperature_range_c": [-5, 28],
+        "humidity_range": [0.5, 0.9]
+      },
+      {
+        "id": "grassland",
+        "temperature_range_c": [-10, 35],
+        "humidity_range": [0.25, 0.6]
+      }
+    ]
+  },
+  "species": [
+    {
+      "id": "oak_tree",
+      "name": "橡树",
+      "kingdom": "plant",
+      "average_mass_kg": 1200,
+      "lifespan_days": 18000,
+      "maturity_days": 1825,
+      "reproduction_rate": 20,
+      "habitats": ["temperate_forest"],
+      "food_web": { "prey": [], "predators": ["deer"] }
+    },
+    {
+      "id": "grass",
+      "name": "野草",
+      "kingdom": "plant",
+      "average_mass_kg": 0.2,
+      "lifespan_days": 200,
+      "maturity_days": 20,
+      "reproduction_rate": 500,
+      "habitats": ["grassland", "temperate_forest"],
+      "food_web": { "prey": [], "predators": ["rabbit", "deer"] }
+    },
+    {
+      "id": "rabbit",
+      "name": "野兔",
+      "kingdom": "herbivore",
+      "average_mass_kg": 2,
+      "lifespan_days": 1500,
+      "maturity_days": 180,
+      "reproduction_rate": 12,
+      "habitats": ["grassland"],
+      "food_web": { "prey": ["grass"], "predators": ["wolf", "eagle"] }
+    },
+    {
+      "id": "deer",
+      "name": "赤鹿",
+      "kingdom": "herbivore",
+      "average_mass_kg": 120,
+      "lifespan_days": 5000,
+      "maturity_days": 730,
+      "reproduction_rate": 1,
+      "habitats": ["temperate_forest"],
+      "food_web": { "prey": ["grass", "oak_tree"], "predators": ["wolf"] }
+    },
+    {
+      "id": "wolf",
+      "name": "灰狼",
+      "kingdom": "carnivore",
+      "average_mass_kg": 40,
+      "lifespan_days": 4000,
+      "maturity_days": 730,
+      "reproduction_rate": 2,
+      "habitats": ["temperate_forest", "grassland"],
+      "food_web": { "prey": ["rabbit", "deer"], "predators": [] }
+    },
+    {
+      "id": "eagle",
+      "name": "金雕",
+      "kingdom": "carnivore",
+      "average_mass_kg": 5,
+      "lifespan_days": 6000,
+      "maturity_days": 1460,
+      "reproduction_rate": 1,
+      "habitats": ["temperate_forest"],
+      "food_web": { "prey": ["rabbit"], "predators": [] }
+    }
+  ]
+}

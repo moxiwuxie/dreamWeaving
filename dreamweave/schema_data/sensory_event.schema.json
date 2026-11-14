@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/sensory_event.schema.json",
+  "title": "Sensory Event (M011-02)",
+  "description": "统一感知事件：玩法与模拟模块只描述“发生了什么”，不关心外设。总线负责通道拆解、时延补偿与降级。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "kind", "t_ms", "intensity", "channels"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{1,63}$",
+      "description": "事件 id，同一帧内需唯一；用于去重与追踪。"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["impact", "step", "voice", "ambient", "weather", "status", "action", "scent_release", "taste", "ui", "custom"]
+    },
+    "t_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "事件发生的世界时间（毫秒），用于时延补偿与跨模态对齐。"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 600000,
+      "default": 0
+    },
+    "intensity": {
+      "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized"
+    },
+    "priority": {
+      "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized",
+      "default": 0.5,
+      "description": "预算裁剪顺序；高优先级事件先占用通道配额。"
+    },
+    "focus": {
+      "type": "boolean",
+      "default": true,
+      "description": "事件是否处于玩家注意力焦点内，非焦点按 focus_policy 降级。"
+    },
+    "position_m": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/vec3" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["player", "npc", "world", "item", "ui", "ai"] },
+        "id": { "type": "string", "minLength": 1, "maxLength": 64 }
+      }
+    },
+    "channels": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "visual": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "vfx": { "type": "string", "minLength": 1, "maxLength": 128 },
+            "screen_shake": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "flash": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+            "color_shift": { "type": "string", "minLength": 1, "maxLength": 64 }
+          }
+        },
+        "audio": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cue": { "type": "string", "minLength": 1, "maxLength": 128 },
+            "material": { "type": "string", "minLength": 1, "maxLength": 64 },
+            "gain": { "type": "number", "minimum": 0, "maximum": 2 },
+            "layer": { "type": "string", "enum": ["far", "mid", "near"] }
+          }
+        },
+        "haptic": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "event": { "type": "string", "minLength": 1, "maxLength": 64 },
+            "wave_id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+            "region": { "type": "string", "enum": ["hands", "torso", "head", "full_body"] },
+            "gain": { "type": "number", "minimum": 0, "maximum": 2 }
+          }
+        },
+        "scent": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "scent_id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+            "concentration": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+          }
+        },
+        "taste": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "food_id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+            "basic": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sweet": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+                "sour": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+                "salty": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+                "bitter": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+                "umami": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "schema_version": "0.1.0",
+  "vitals": {
+    "temperature": {
+      "baseline_c": 36.8,
+      "comfort_ambient_range_c": [10, 30],
+      "critical_low_c": 28,
+      "critical_high_c": 42
+    },
+    "hunger": {
+      "drain_per_hour": 0.04,
+      "starvation_threshold": 0.1,
+      "damage_per_hour": 20
+    },
+    "thirst": {
+      "drain_per_hour": 0.06,
+      "dehydration_threshold": 0.1,
+      "damage_per_hour": 30
+    },
+    "fatigue": {
+      "drain_per_hour_awake": 0.05,
+      "recovery_per_hour_asleep": 0.12,
+      "collapse_threshold": 0.95
+    },
+    "oxygen": {
+      "capacity_seconds": 90,
+      "regen_per_second": 10,
+      "drowning_damage_per_second": 8
+    }
+  },
+  "injury": {
+    "bleed_rate_per_min": 0.5,
+    "heal_rate_per_day": 0.15,
+    "fracture_energy_joule": 80,
+    "pain_curve": [
+      { "input": 0, "output": 0 },
+      { "input": 0.3, "output": 0.2 },
+      { "input": 0.6, "output": 0.6 },
+      { "input": 1, "output": 1 }
+    ]
+  },
+  "immunity": {
+    "base_resistance": 0.6,
+    "infection_chance_per_contact": 0.08,
+    "recovery_rate_per_hour": 0.05
+  },
+  "survival": {
+    "auto_eat": true,
+    "auto_drink": true,
+    "eat_threshold": 0.35,
+    "drink_threshold": 0.4,
+    "eat_rate_per_hour": 0.3,
+    "drink_rate_per_hour": 0.6
+  },
+  "status_effects": [
+    {
+      "id": "hypothermia",
+      "trigger": "temperature_low",
+      "threshold": 0.2,
+      "feedback": {
+        "vfx": "vfx_frost_edges",
+        "sfx": "sfx_shiver_loop",
+        "haptic": "haptic_slow_pulse"
+      },
+      "modifiers": { "speed_multiplier": 0.7, "vision_blur": 0.2 }
+    },
+    {
+      "id": "heat_stroke",
+      "trigger": "temperature_high",
+      "threshold": 0.2,
+      "feedback": {
+        "vfx": "vfx_heat_haze",
+        "sfx": "sfx_heartbeat_fast",
+        "haptic": "haptic_fast_pulse"
+      },
+      "modifiers": { "speed_multiplier": 0.8, "stamina_multiplier": 0.6 }
+    },
+    {
+      "id": "hungry",
+      "trigger": "hunger_low",
+      "threshold": 0.3,
+      "feedback": { "vfx": "vfx_desaturate", "sfx": "sfx_stomach_growl", "scent": "scent_bread" },
+      "modifiers": { "stamina_multiplier": 0.7 }
+    },
+    {
+      "id": "parched",
+      "trigger": "thirst_low",
+      "threshold": 0.3,
+      "feedback": { "vfx": "vfx_cracked_lips", "sfx": "sfx_dry_breath", "taste": "taste_bitter" },
+      "modifiers": { "stamina_multiplier": 0.6 }
+    },
+    {
+      "id": "exhausted",
+      "trigger": "fatigue_high",
+      "threshold": 0.8,
+      "feedback": { "vfx": "vfx_eye_droop", "sfx": "sfx_slow_breath", "haptic": "haptic_heavy" },
+      "modifiers": { "speed_multiplier": 0.65, "vision_blur": 0.3 }
+    },
+    {
+      "id": "suffocating",
+      "trigger": "oxygen_low",
+      "threshold": 0.5,
+      "feedback": { "vfx": "vfx_vignette_red", "sfx": "sfx_muffled", "haptic": "haptic_chest_tight" },
+      "modifiers": { "speed_multiplier": 0.5, "hearing_loss": 0.6 }
+    },
+    {
+      "id": "bleeding",
+      "trigger": "bleeding",
+      "threshold": 0.1,
+      "feedback": { "vfx": "vfx_blood_drip", "sfx": "sfx_heartbeat", "haptic": "haptic_wet_pulse", "scent": "scent_iron" },
+      "modifiers": { "stamina_multiplier": 0.8 }
+    },
+    {
+      "id": "agony",
+      "trigger": "pain_high",
+      "threshold": 0.7,
+      "feedback": { "vfx": "vfx_screen_pulse", "sfx": "sfx_groan", "haptic": "haptic_sharp" },
+      "modifiers": { "speed_multiplier": 0.55, "vision_blur": 0.5 }
+    }
+  ]
+}

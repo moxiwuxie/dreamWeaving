@@ -1,0 +1,141 @@
+{
+  "schema_version": "0.1.0",
+  "layers": {
+    "crowd": {
+      "enabled": true,
+      "max_agents": 50000,
+      "update_hz": 10,
+      "lod_radius_m": 120
+    },
+    "mass_life": {
+      "enabled": true,
+      "max_agents": 5000,
+      "update_hz": 30,
+      "lod_radius_m": 600,
+      "offline_tick_minutes": 5
+    },
+    "llm_core": {
+      "enabled": true,
+      "max_active_agents": 8,
+      "memory_window_tokens": 32000,
+      "model_ref": "default_llm_router"
+    }
+  },
+  "economy": {
+    "currency": "银币",
+    "inflation_target": 0.02,
+    "goods": [
+      { "id": "timber", "name": "木材", "base_price": 4, "unit": "捆", "supply_elasticity": 1.2, "demand_elasticity": -0.8 },
+      { "id": "grain", "name": "谷物", "base_price": 2, "unit": "袋", "supply_elasticity": 0.9, "demand_elasticity": -1.1 },
+      { "id": "meat", "name": "肉类", "base_price": 7, "unit": "斤", "supply_elasticity": 0.6, "demand_elasticity": -1.4 },
+      { "id": "hide", "name": "兽皮", "base_price": 6, "unit": "张", "supply_elasticity": 0.7, "demand_elasticity": -0.9 },
+      { "id": "water", "name": "净水", "base_price": 1, "unit": "桶", "supply_elasticity": 0.2, "demand_elasticity": -0.3 },
+      { "id": "tool", "name": "铁制工具", "base_price": 25, "unit": "件", "supply_elasticity": 1.5, "demand_elasticity": -1.2 }
+    ]
+  },
+  "laws": [
+    { "id": "no_theft", "description": "禁止窃取他人财物", "severity": "major", "applies_to": ["mass_life", "llm_core", "player"] },
+    { "id": "no_arson", "description": "禁止纵火", "severity": "capital", "applies_to": ["mass_life", "llm_core", "player"] },
+    { "id": "curfew", "description": "宵禁后禁止在城外游荡", "severity": "minor", "applies_to": ["mass_life", "llm_core"] }
+  ],
+  "schedule_templates": [
+    {
+      "id": "town_day",
+      "entries": [
+        { "start_minute": 0, "end_minute": 390, "activity": "sleep", "location": "home" },
+        { "start_minute": 390, "end_minute": 480, "activity": "eat", "location": "tavern" },
+        { "start_minute": 480, "end_minute": 720, "activity": "work", "location": "workshop" },
+        { "start_minute": 720, "end_minute": 780, "activity": "eat", "location": "tavern" },
+        { "start_minute": 780, "end_minute": 1080, "activity": "work", "location": "workshop" },
+        { "start_minute": 1080, "end_minute": 1260, "activity": "socialize", "location": "plaza" },
+        { "start_minute": 1260, "end_minute": 1440, "activity": "sleep", "location": "home" }
+      ]
+    },
+    {
+      "id": "guard_night",
+      "entries": [
+        { "start_minute": 0, "end_minute": 360, "activity": "patrol", "location": "gate" },
+        { "start_minute": 360, "end_minute": 480, "activity": "eat", "location": "barracks" },
+        { "start_minute": 480, "end_minute": 1320, "activity": "sleep", "location": "barracks" },
+        { "start_minute": 1320, "end_minute": 1440, "activity": "patrol", "location": "gate" }
+      ]
+    }
+  ],
+  "location_scene_map": {
+    "tavern": "city_core",
+    "workshop": "city_core",
+    "plaza": "city_core",
+    "gate": "city_core",
+    "barracks": "city_core"
+  },
+  "npc_roster": [
+    {
+      "id": "guard_lin",
+      "name": "林卫",
+      "layer": "mass_life",
+      "scene_id": "city_core",
+      "schedule_template": "guard_night",
+      "persona": {
+        "traits": { "openness": 0.3, "conscientiousness": 0.9, "extraversion": 0.4, "agreeableness": 0.5, "neuroticism": 0.3 },
+        "goals": ["维持城门秩序", "攒钱为女儿治病"],
+        "speech_style": "短句，公事公办"
+      },
+      "memory": {
+        "capacity": 2000,
+        "seed_events": [
+          { "day": 0, "summary": "被任命为北门卫兵", "salience": 0.9 },
+          { "day": 12, "summary": "在城门遇到一名外乡旅人", "salience": 0.6 }
+        ]
+      },
+      "relations": [
+        { "target": "merchant_zhao", "trust": 0.2, "familiarity": 0.5 },
+        { "target": "elder_qiu", "trust": 0.6, "familiarity": 0.4 }
+      ]
+    },
+    {
+      "id": "merchant_zhao",
+      "name": "赵商",
+      "layer": "mass_life",
+      "scene_id": "city_core",
+      "schedule_template": "town_day",
+      "persona": {
+        "traits": { "openness": 0.7, "conscientiousness": 0.6, "extraversion": 0.9, "agreeableness": 0.4, "neuroticism": 0.5 },
+        "goals": ["垄断木材生意", "成为镇上有名的富商"],
+        "speech_style": "热情、爱绕弯子"
+      },
+      "memory": {
+        "capacity": 4000,
+        "seed_events": [
+          { "day": 3, "summary": "以低价收购了一批橡木", "salience": 0.7 }
+        ]
+      },
+      "relations": [
+        { "target": "guard_lin", "trust": 0.2, "familiarity": 0.5 },
+        { "target": "elder_qiu", "trust": 0.1, "familiarity": 0.7 }
+      ]
+    },
+    {
+      "id": "elder_qiu",
+      "name": "秋长老",
+      "layer": "llm_core",
+      "scene_id": "farmland",
+      "schedule_template": "town_day",
+      "persona": {
+        "traits": { "openness": 0.8, "conscientiousness": 0.7, "extraversion": 0.3, "agreeableness": 0.8, "neuroticism": 0.2 },
+        "goals": ["守住镇子的古老习俗", "阻止外来者破坏森林"],
+        "speech_style": "语速慢，多用比喻"
+      },
+      "memory": {
+        "capacity": 8000,
+        "seed_events": [
+          { "day": 0, "summary": "接任长老之位", "salience": 1.0 },
+          { "day": 40, "summary": "目击森林边缘出现异常的火光", "salience": 0.85 }
+        ]
+      },
+      "relations": [
+        { "target": "guard_lin", "trust": 0.6, "familiarity": 0.4 },
+        { "target": "merchant_zhao", "trust": 0.1, "familiarity": 0.7 }
+      ]
+    }
+  ]
+}

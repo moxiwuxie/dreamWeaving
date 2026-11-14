@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/world_narrative.schema.json",
+  "title": "World Narrative Kernel Config",
+  "description": "M007 剧情内核：国家、阶层、个体三层结构，现实因果规则与 AI 独有剧情生成契约。剧情不是随机事件表，而是由结构矛盾与现实规律推导出的结果。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "causal_rules", "nations", "classes", "tensions", "arcs", "generation"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "causal_rules": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 32,
+      "description": "现实因果律。AI 生成剧情时必须至少遵守 generation.must_respect 中列出的规则。",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "principle", "observable", "consequence"],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "principle": { "type": "string", "minLength": 1, "maxLength": 256, "description": "规律本身，例如「资源稀缺放大群体冲突」。" },
+          "observable": { "type": "string", "minLength": 1, "maxLength": 256, "description": "在世界上可被观察到的表现，用于校验剧情是否真的遵循了它。" },
+          "consequence": { "type": "string", "minLength": 1, "maxLength": 256, "description": "若长期违背会产生的后果。" },
+          "weight": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+        }
+      }
+    },
+    "nations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "description": "国家/城邦/部落/商会等宏观实体。不同国家的制度、意识形态与对外策略必须不同。",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "kind", "government", "ideology", "population", "stability", "military", "economy", "territory_scene_refs", "foreign_policy"],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "name": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/display_name" },
+          "kind": { "type": "string", "enum": ["nation", "city_state", "tribe", "guild", "corporation", "order"] },
+          "government": { "type": "string", "enum": ["monarchy", "republic", "theocracy", "council", "autocracy", "anarchy"] },
+          "ideology": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "population": { "type": "integer", "minimum": 1, "maximum": 1000000000 },
+          "stability": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+          "military": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+          "economy": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+          "territory_scene_refs": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 16,
+            "items": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" }
+          },
+          "foreign_policy": { "type": "string", "enum": ["isolationist", "expansionist", "mercantile", "defensive", "hegemonic"] }
+        }
+      }
+    },
+    "classes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "description": "阶层。同一国家内 share 之和应接近 1；收入、流动性与诉求差异构成内部矛盾。",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "nation_id", "share", "income_index", "mobility", "obligations", "grievances"],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "name": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/display_name" },
+          "nation_id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+          "share": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+          "income_index": { "type": "number", "minimum": 0, "maximum": 10, "description": "相对收入指数，10 为最富裕。" },
+          "mobility": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+          "obligations": { "type": "array", "maxItems": 8, "items": { "type": "string", "maxLength": 128 } },
+          "grievances": { "type": "array", "maxItems": 8, "items": { "type": "string", "maxLength": 128 } }
+        }
+      }
+    },
+    "tensions": {
+      "type": "array",
+      "maxItems": 64,
+      "description": "结构性矛盾：国家间、阶层间或个体间。剧情由矛盾升级或解决产生。",
+      "items": { "$ref": "#/$defs/tension" }
+    },
+    "arcs": {
+      "type": "array",
+      "maxItems": 256,
+      "description": "个体剧情线：欲望、阻碍、缺陷、秘密与代价。",
+      "items": { "$ref": "#/$defs/arc" }
+    },
+    "chronicle": {
+      "type": "array",
+      "maxItems": 2048,
+      "description": "已发生的剧情编年史，AI 生成新剧情时用于去重与承接。",
+      "items": { "$ref": "#/$defs/chronicle_entry" }
+    },
+    "quests": {
+      "type": "array",
+      "maxItems": 64,
+      "description": "玩家任务：完成后按实际操作生成编年史剧情节拍，并推动关联矛盾。",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "scene_id", "action", "duration_min"],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "title": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/display_name" },
+          "description": { "type": "string", "maxLength": 256 },
+          "scene_id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+          "action": { "type": "string", "enum": ["work", "patrol", "socialize", "worship", "eat", "sleep", "shop"] },
+          "duration_min": { "type": "integer", "minimum": 10, "maximum": 1440 },
+          "tension_id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+          "participants": {
+            "type": "array",
+            "maxItems": 16,
+            "items": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" }
+          }
+        }
+      }
+    },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pov", "max_new_arcs_per_day", "language", "tone", "must_respect", "forbidden", "uniqueness", "novelty_window_days"],
+      "description": "AI 剧情生成契约：规定视角、产量、必须遵守的因果律与禁止手法。",
+      "properties": {
+        "pov": { "type": "string", "enum": ["first_person", "third_person_limited", "omniscient"] },
+        "max_new_arcs_per_day": { "type": "integer", "minimum": 1, "maximum": 32 },
+        "language": { "type": "string", "minLength": 2, "maxLength": 16 },
+        "tone": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "must_respect": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" }
+        },
+        "forbidden": { "type": "array", "maxItems": 32, "items": { "type": "string", "maxLength": 128 } },
+        "uniqueness": { "type": "string", "enum": ["per_world", "per_day", "per_character"] },
+        "novelty_window_days": { "type": "integer", "minimum": 1, "maximum": 3650 }
+      }
+    }
+  },
+  "$defs": {
+    "party": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ref"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["nation", "class", "npc"] },
+        "ref": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" }
+      }
+    },
+    "tension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "parties", "stake", "stage", "intensity"],
+      "properties": {
+        "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+        "name": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/display_name" },
+        "parties": { "type": "array", "minItems": 2, "maxItems": 8, "items": { "$ref": "#/$defs/party" } },
+        "stake": {
+          "type": "string",
+          "enum": ["land", "water", "food", "trade", "faith", "power", "honor", "revenge", "knowledge", "survival"]
+        },
+        "stage": { "type": "string", "enum": ["dormant", "emerging", "escalating", "open", "crisis", "resolution"] },
+        "intensity": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "triggers": { "type": "array", "maxItems": 8, "items": { "type": "string", "maxLength": 128 } }
+      }
+    },
+    "arc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "npc_ref", "desire", "obstacle", "flaw", "secret", "stakes", "stage"],
+      "properties": {
+        "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "npc_ref": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+        "nation_ref": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+        "class_ref": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+        "desire": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "obstacle": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "flaw": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "secret": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "stakes": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "stage": { "type": "string", "enum": ["setup", "rising", "climax", "resolution"] },
+        "tags": { "type": "array", "maxItems": 8, "items": { "type": "string", "maxLength": 32 } }
+      }
+    },
+    "chronicle_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "day", "summary"],
+      "properties": {
+        "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+        "day": { "type": "integer", "minimum": 0 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "participants": {
+          "type": "array",
+          "maxItems": 16,
+          "items": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" }
+        },
+        "tension_ref": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" },
+        "arc_ref": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/ref" }
+      }
+    }
+  }
+}

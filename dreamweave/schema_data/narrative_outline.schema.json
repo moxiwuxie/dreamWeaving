@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/narrative_outline.schema.json",
+  "title": "Narrative Outline (AI output)",
+  "description": "AI 单次剧情生成的输出契约。只允许新增矛盾、个体线与会写入编年史的事件，不允许改物理/生态等世界规则。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["story_key", "title", "logline", "tensions", "arcs", "chronicle"],
+  "properties": {
+    "story_key": { "type": "string", "pattern": "^[0-9a-f]{16}$", "description": "由 CLI narrative context 生成的唯一键，用于保证同一世界同一天的剧情不重复。" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "logline": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "tensions": {
+      "type": "array",
+      "maxItems": 3,
+      "items": { "$ref": "https://schemas.dreamweave.local/world_narrative.schema.json#/$defs/tension" }
+    },
+    "arcs": {
+      "type": "array",
+      "maxItems": 3,
+      "items": { "$ref": "https://schemas.dreamweave.local/world_narrative.schema.json#/$defs/arc" }
+    },
+    "chronicle": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": { "$ref": "https://schemas.dreamweave.local/world_narrative.schema.json#/$defs/chronicle_entry" }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/sensory_taste.schema.json",
+  "title": "Taste Feedback Config (M002-05)",
+  "description": "五味基础参数与食物味觉绑定。无硬件时以表情、咀嚼音效、UI 描述呈现；Vocktail 等设备用微电流模拟。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "taste_basic_map", "food_bindings", "hardware"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "taste_basic_map": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sweet", "sour", "salty", "bitter", "umami"],
+      "properties": {
+        "sweet": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "sour": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "salty": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "bitter": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "umami": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+      },
+      "description": "五味基准敏感度，1 为普通人类。"
+    },
+    "food_bindings": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["food_id", "taste", "texture", "serving_temperature"],
+        "properties": {
+          "food_id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "taste": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sweet", "sour", "salty", "bitter", "umami"],
+            "properties": {
+              "sweet": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+              "sour": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+              "salty": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+              "bitter": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+              "umami": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+            }
+          },
+          "texture": { "type": "string", "enum": ["soft", "crunchy", "chewy", "liquid", "grainy", "fibrous"] },
+          "serving_temperature": { "type": "string", "enum": ["hot", "warm", "room", "chilled", "frozen"] }
+        }
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vocktail"],
+      "properties": {
+        "vocktail": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "microcurrent_range_ua"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "microcurrent_range_ua": { "type": "number", "minimum": 0, "maximum": 1000 }
+          }
+        }
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "description": "无味觉硬件时的降级表达：角色表情 + 咀嚼音效 + UI 描述。",
+      "additionalProperties": false,
+      "required": ["mode", "expression", "sfx", "ui_text"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["expression", "ui_only", "disabled"] },
+        "expression": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "sfx": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "ui_text": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    }
+  }
+}

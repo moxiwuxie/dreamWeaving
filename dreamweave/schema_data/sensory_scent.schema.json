@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/sensory_scent.schema.json",
+  "title": "Scent Feedback Config (M002-04)",
+  "description": "气味库与扩散规则。无硬件时降级为色彩滤镜 + 角色动画 + 音效联想；OVR Omara 等设备按风向与距离控制浓度。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scent_lib", "diffusion", "hardware"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "scent_lib": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "category", "base_intensity", "descriptors"],
+        "properties": {
+          "id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+          "name": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/display_name" },
+          "category": {
+            "type": "string",
+            "enum": ["floral", "woody", "earthy", "smoky", "food", "animal", "chemical", "marine", "foul"]
+          },
+          "base_intensity": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+          "descriptors": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": { "type": "string", "maxLength": 32 }
+          }
+        }
+      }
+    },
+    "diffusion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wind_influence", "distance_falloff_exp", "persistence_seconds", "max_concentration"],
+      "properties": {
+        "wind_influence": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "distance_falloff_exp": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 4,
+          "description": "浓度随距离衰减指数，2 为平方反比。"
+        },
+        "persistence_seconds": { "type": "number", "exclusiveMinimum": 0, "maximum": 86400 },
+        "max_concentration": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ovr_omara"],
+      "properties": {
+        "ovr_omara": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "cartridge_slots"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "cartridge_slots": { "type": "integer", "minimum": 0, "maximum": 16 }
+          }
+        }
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "description": "无嗅觉硬件时的降级表达，对应 M002-04 的「色彩滤镜 + 角色动画 + 音效联想」。",
+      "additionalProperties": false,
+      "required": ["mode", "vfx", "sfx", "ui_text"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["color_filter", "animation", "ui_only", "disabled"] },
+        "vfx": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "sfx": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "ui_text": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    }
+  }
+}

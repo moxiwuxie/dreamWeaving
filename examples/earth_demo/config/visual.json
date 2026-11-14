@@ -1,0 +1,71 @@
+{
+  "schema_version": "0.1.0",
+  "renderer": {
+    "backend": "ue5",
+    "global_illumination": "lumen",
+    "geometry": "nanite",
+    "anti_aliasing": "tsr",
+    "upscaler": "dlss",
+    "shadow": "virtual_shadow_maps"
+  },
+  "perspective": {
+    "default": "first_person",
+    "blend_seconds": 0.25,
+    "first_person": {
+      "eye_height_m": 1.65,
+      "forward_offset_m": 0.1,
+      "fov_deg": 90,
+      "near_clip_m": 0.05,
+      "far_clip_m": 20000,
+      "pitch_min_deg": -85,
+      "pitch_max_deg": 85,
+      "head_bob": true
+    },
+    "third_person": {
+      "boom_length_m": 3.2,
+      "shoulder_offset_m": 0.6,
+      "height_offset_m": 1.7,
+      "fov_deg": 75,
+      "near_clip_m": 0.1,
+      "far_clip_m": 20000,
+      "collision_probe_radius_m": 0.2,
+      "min_boom_m": 0.5,
+      "pitch_min_deg": -70,
+      "pitch_max_deg": 45
+    }
+  },
+  "brightness_adapt_speed": 1,
+  "atmosphere": {
+    "rayleigh": 1,
+    "mie": 1,
+    "turbidity": 0.4
+  },
+  "exposure": {
+    "min_ev": -4,
+    "max_ev": 6,
+    "adapt_curve": [
+      { "input": 0, "output": -3 },
+      { "input": 0.5, "output": 0 },
+      { "input": 1, "output": 4 }
+    ]
+  },
+  "depth_of_field": {
+    "enabled": true,
+    "aperture_fstop": 2.8,
+    "focus_distance_m": 12
+  },
+  "motion_blur": {
+    "enabled": true,
+    "shutter_fraction": 0.5
+  },
+  "status_vfx_map": {
+    "hypothermia": "vfx_frost_edges",
+    "heat_stroke": "vfx_heat_haze",
+    "hungry": "vfx_desaturate",
+    "parched": "vfx_cracked_lips",
+    "exhausted": "vfx_eye_droop",
+    "suffocating": "vfx_vignette_red",
+    "bleeding": "vfx_blood_drip",
+    "agony": "vfx_screen_pulse"
+  }
+}

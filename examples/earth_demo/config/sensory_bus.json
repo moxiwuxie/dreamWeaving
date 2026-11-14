@@ -1,0 +1,127 @@
+{
+  "schema_version": "0.1.0",
+  "sync_window_ms": 45,
+  "soft_sync_window_ms": 400,
+  "tick_hz": 120,
+  "channels": {
+    "visual": {
+      "enabled": true,
+      "sync_mode": "hard",
+      "min_priority": 0.0,
+      "devices": [
+        {
+          "id": "xr_headset",
+          "enabled": true,
+          "latency_ms": 10,
+          "capabilities": ["hdr", "eye_tracking"]
+        }
+      ]
+    },
+    "audio": {
+      "enabled": true,
+      "sync_mode": "hard",
+      "min_priority": 0.0,
+      "devices": [
+        {
+          "id": "hrtf_headset",
+          "enabled": true,
+          "latency_ms": 18,
+          "capabilities": ["hrtf", "spatial"]
+        }
+      ]
+    },
+    "haptic": {
+      "enabled": true,
+      "sync_mode": "hard",
+      "min_priority": 0.0,
+      "devices": [
+        {
+          "id": "dualsense",
+          "enabled": true,
+          "latency_ms": 28,
+          "capabilities": ["adaptive_trigger", "wideband"]
+        },
+        {
+          "id": "screen_rumble",
+          "enabled": true,
+          "latency_ms": 16,
+          "capabilities": ["screen_haptic"]
+        }
+      ]
+    },
+    "scent": {
+      "enabled": true,
+      "sync_mode": "soft",
+      "min_priority": 0.1,
+      "devices": [
+        {
+          "id": "ovr_omara",
+          "enabled": false,
+          "latency_ms": 180,
+          "capabilities": ["cartridge"]
+        },
+        {
+          "id": "scent_soft_hint",
+          "enabled": true,
+          "latency_ms": 60,
+          "capabilities": ["soft_hint"]
+        }
+      ]
+    },
+    "taste": {
+      "enabled": true,
+      "sync_mode": "soft",
+      "min_priority": 0.1,
+      "devices": [
+        {
+          "id": "vocktail",
+          "enabled": false,
+          "latency_ms": 150,
+          "capabilities": ["microcurrent"]
+        },
+        {
+          "id": "taste_soft_hint",
+          "enabled": true,
+          "latency_ms": 60,
+          "capabilities": ["soft_hint"]
+        }
+      ]
+    }
+  },
+  "psychophysics": {
+    "visual": { "law": "stevens", "exponent": 0.45 },
+    "audio": { "law": "stevens", "exponent": 0.6 },
+    "haptic": { "law": "stevens", "exponent": 0.75 },
+    "scent": { "law": "stevens", "exponent": 0.4 },
+    "taste": { "law": "stevens", "exponent": 0.5 }
+  },
+  "routing": {
+    "impact": ["visual", "audio", "haptic", "scent"],
+    "step": ["audio", "haptic", "scent"],
+    "voice": ["audio"],
+    "ambient": ["visual", "audio", "scent"],
+    "weather": ["visual", "audio", "haptic", "scent"],
+    "status": ["visual", "audio", "haptic", "scent", "taste"],
+    "action": ["visual", "audio", "haptic", "scent"],
+    "scent_release": ["scent"],
+    "taste": ["taste"],
+    "ui": ["visual", "audio"],
+    "custom": ["visual", "audio", "haptic", "scent", "taste"]
+  },
+  "focus_policy": {
+    "enabled": true,
+    "off_focus_scale": 0.35,
+    "attenuated_channels": ["haptic", "scent", "taste"],
+    "drop_below": 0.05
+  },
+  "budget": {
+    "max_events_per_tick": 32,
+    "per_channel_events_per_sec": {
+      "visual": 90,
+      "audio": 60,
+      "haptic": 40,
+      "scent": 8,
+      "taste": 4
+    }
+  }
+}

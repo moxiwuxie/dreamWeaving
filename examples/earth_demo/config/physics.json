@@ -1,0 +1,40 @@
+{
+  "schema_version": "0.1.0",
+  "preset": "earth",
+  "gravity": -9.81,
+  "air_density": 1.225,
+  "speed_of_sound": 343,
+  "friction": {
+    "static": 0.6,
+    "dynamic": 0.45,
+    "rolling": 0.02
+  },
+  "fluid": {
+    "viscosity": 0.001,
+    "surface_tension": 0.072,
+    "turbulence_scale": 1
+  },
+  "thermal": {
+    "ambient_temperature_c": 15,
+    "air_heat_capacity": 1005,
+    "conductivity_scale": 1,
+    "radiation_scale": 1
+  },
+  "combustion": {
+    "ignition_temperature_c": 260,
+    "burn_rate": 0.02,
+    "oxygen_consumption": 3.5,
+    "smoke_yield": 0.85
+  },
+  "deformation": {
+    "youngs_modulus_gpa": 30,
+    "poisson_ratio": 0.25,
+    "fracture_stress_mpa": 40
+  },
+  "rigid_body": {
+    "substeps": 4,
+    "sleep_threshold": 0.02,
+    "max_contact_pairs": 200000
+  },
+  "coupling_tick_order": ["thermal", "fluid", "combustion", "deformation", "rigid_body"]
+}

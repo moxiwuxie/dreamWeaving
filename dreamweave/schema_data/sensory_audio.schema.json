@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/sensory_audio.schema.json",
+  "title": "Audio Feedback Config (M002-02)",
+  "description": "成熟空间音频方案（Steam Audio / Wwise / MetaSounds / FMOD）、HRTF 3D 音频、混响/遮挡、材质音效与远景/中景/近景三层环境音。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "backend", "listener", "hrtf_enabled", "reverb_preset", "occlusion_attenuation", "layer_gain", "material_sound_map"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spatializer", "mixer", "sample_rate_hz", "ambisonics", "max_simultaneous_sources"],
+      "description": "空间音频与混音后端；Steam Audio 提供 HRTF、遮挡与混响，Wwise/FMOD 提供总线与事件。",
+      "properties": {
+        "spatializer": { "type": "string", "enum": ["steam_audio", "oculus", "wwise_spatial", "fmod", "native"] },
+        "mixer": { "type": "string", "enum": ["metasounds", "wwise", "fmod", "native"] },
+        "sample_rate_hz": { "type": "integer", "enum": [22050, 44100, 48000, 96000, 192000] },
+        "ambisonics": { "type": "string", "enum": ["none", "first_order", "second_order", "third_order"] },
+        "hrtf_profile": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "max_simultaneous_sources": { "type": "integer", "minimum": 1, "maximum": 256 }
+      }
+    },
+    "listener": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["follow", "update_rate_hz"],
+      "description": "听者跟随谁；camera 表示与视觉相机共用变换，保证声画一致。",
+      "properties": {
+        "follow": { "type": "string", "enum": ["camera", "player", "custom"] },
+        "update_rate_hz": { "type": "number", "minimum": 1, "maximum": 240 }
+      }
+    },
+    "scene_reverb_map": {
+      "type": "object",
+      "description": "场景 id -> 混响预设，覆盖全局 reverb_preset；用于洞穴、室内等空间切换。",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]{1,63}$" },
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["outdoor_open", "forest", "cave", "small_room", "cathedral", "underwater", "custom"]
+      }
+    },
+    "hrtf_enabled": { "type": "boolean" },
+    "reverb_preset": {
+      "type": "string",
+      "enum": ["outdoor_open", "forest", "cave", "small_room", "cathedral", "underwater", "custom"]
+    },
+    "occlusion_attenuation": {
+      "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized",
+      "description": "遮挡衰减强度，1=完全阻挡。"
+    },
+    "layer_gain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["far", "mid", "near"],
+      "properties": {
+        "far": { "type": "number", "minimum": 0, "maximum": 2 },
+        "mid": { "type": "number", "minimum": 0, "maximum": 2 },
+        "near": { "type": "number", "minimum": 0, "maximum": 2 }
+      }
+    },
+    "material_sound_map": {
+      "type": "object",
+      "description": "材质 id -> 各类交互音效资源。",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]{1,63}$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["impact", "friction", "break", "step"],
+        "properties": {
+          "impact": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "friction": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "break": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "step": { "type": "string", "minLength": 1, "maxLength": 128 }
+        }
+      }
+    }
+  }
+}

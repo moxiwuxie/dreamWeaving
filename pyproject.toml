@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dreamweave"
+version = "0.1.0"
+description = "《织梦 DreamWeave》可执行配置层：强 Schema 世界配置校验"
+requires-python = ">=3.11"
+dependencies = ["jsonschema>=4.21", "referencing>=0.31"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+dreamweave = "dreamweave.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["dreamweave*"]
+
+[tool.setuptools.package-data]
+dreamweave = ["schema_data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

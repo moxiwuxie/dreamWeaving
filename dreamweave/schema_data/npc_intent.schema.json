@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/npc_intent.schema.json",
+  "title": "LLM NPC Reply & Intent",
+  "description": "M006-04 的模型输出契约。对话直接播放；行为意图必须转成受控指令，经 M006-03 与全量校验后才允许修改世界。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "npc_id", "dialogue", "action"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "npc_id": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/id" },
+    "dialogue": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "emotion": {
+      "type": "string",
+      "enum": ["neutral", "happy", "sad", "angry", "afraid", "surprised", "disgusted"]
+    },
+    "confidence": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["none", "move", "trade", "world_edit"],
+          "description": "none=仅对话；move/trade=运行时行为；world_edit=修改世界规则。"
+        },
+        "target": { "type": "string", "maxLength": 64 },
+        "instruction": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "受控句式，例如「把重力改为 -3.7」，仅 world_edit 必填。"
+        },
+        "params": { "type": "object", "maxProperties": 16 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "world_edit" } }, "required": ["type"] },
+          "then": { "required": ["instruction"] }
+        }
+      ]
+    }
+  }
+}

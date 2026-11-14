@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/sensory_visual.schema.json",
+  "title": "Visual Feedback Config (M002-01)",
+  "description": "成熟渲染管线（UE5 Lumen/Nanite、Unity HDRP/URP、Godot）、大气散射、第一/第三人称相机、瞳孔明暗适应与生理状态视觉联动。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "renderer", "perspective", "brightness_adapt_speed", "atmosphere", "exposure", "depth_of_field", "motion_blur", "status_vfx_map"],
+  "properties": {
+    "schema_version": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/schema_version" },
+    "renderer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backend", "global_illumination", "geometry", "anti_aliasing", "upscaler", "shadow"],
+      "description": "直接映射市面成熟渲染方案的开关组合，引擎侧读取后按对应管线配置。",
+      "properties": {
+        "backend": {
+          "type": "string",
+          "enum": ["ue5", "unity_hdrp", "unity_urp", "godot", "custom"],
+          "description": "渲染后端：ue5 对应 Lumen+Nanite，unity_* 对应 HDRP/URP，godot 对应 Godot 4。"
+        },
+        "global_illumination": { "type": "string", "enum": ["lumen", "rtxgi", "baked", "none"] },
+        "geometry": { "type": "string", "enum": ["nanite", "standard", "gaussian_splat"] },
+        "anti_aliasing": { "type": "string", "enum": ["tsr", "taa", "msaa", "fxaa", "none"] },
+        "upscaler": { "type": "string", "enum": ["dlss", "fsr", "xess", "tsr", "none"] },
+        "shadow": { "type": "string", "enum": ["virtual_shadow_maps", "cascaded", "ray_traced", "none"] }
+      }
+    },
+    "perspective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default", "blend_seconds", "first_person", "third_person"],
+      "description": "第一/第三人称相机机架。引擎按 mode 读取对应 rig，切换时用 blend_seconds 平滑过渡。",
+      "properties": {
+        "default": { "type": "string", "enum": ["first_person", "third_person"] },
+        "blend_seconds": { "type": "number", "minimum": 0, "maximum": 5 },
+        "first_person": { "$ref": "#/$defs/first_person_rig" },
+        "third_person": { "$ref": "#/$defs/third_person_rig" }
+      }
+    },
+    "brightness_adapt_speed": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "瞳孔明暗适应速度，0=固定曝光，1=人眼基准。"
+    },
+    "atmosphere": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rayleigh", "mie", "turbidity"],
+      "properties": {
+        "rayleigh": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "mie": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" },
+        "turbidity": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+      }
+    },
+    "exposure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min_ev", "max_ev", "adapt_curve"],
+      "properties": {
+        "min_ev": { "type": "number", "minimum": -20, "maximum": 20 },
+        "max_ev": { "type": "number", "minimum": -20, "maximum": 20 },
+        "adapt_curve": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/response_curve" }
+      }
+    },
+    "depth_of_field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "aperture_fstop", "focus_distance_m"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "aperture_fstop": { "type": "number", "minimum": 1, "maximum": 32 },
+        "focus_distance_m": { "type": "number", "exclusiveMinimum": 0, "maximum": 10000 }
+      }
+    },
+    "motion_blur": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "shutter_fraction"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "shutter_fraction": { "$ref": "https://schemas.dreamweave.local/common.schema.json#/$defs/normalized" }
+      }
+    },
+    "status_vfx_map": {
+      "type": "object",
+      "description": "生理/环境状态 -> VFX 资源 id，键需与 player_body.status_effects.id 对应。",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]{1,63}$" },
+      "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 128 }
+    }
+  },
+  "$defs": {
+    "first_person_rig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eye_height_m", "forward_offset_m", "fov_deg", "near_clip_m", "far_clip_m", "pitch_min_deg", "pitch_max_deg"],
+      "properties": {
+        "eye_height_m": { "type": "number", "minimum": 0, "maximum": 3, "description": "相机相对脚底的高度。" },
+        "forward_offset_m": { "type": "number", "minimum": -1, "maximum": 1, "description": "相机沿视线的前后偏移，避免看到自身模型。" },
+        "fov_deg": { "type": "number", "exclusiveMinimum": 30, "maximum": 120 },
+        "near_clip_m": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "far_clip_m": { "type": "number", "exclusiveMinimum": 10, "maximum": 1000000 },
+        "pitch_min_deg": { "type": "number", "minimum": -89, "maximum": 0 },
+        "pitch_max_deg": { "type": "number", "minimum": 0, "maximum": 89 },
+        "head_bob": { "type": "boolean" }
+      }
+    },
+    "third_person_rig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["boom_length_m", "shoulder_offset_m", "height_offset_m", "fov_deg", "near_clip_m", "far_clip_m", "collision_probe_radius_m", "min_boom_m", "pitch_min_deg", "pitch_max_deg"],
+      "properties": {
+        "boom_length_m": { "type": "number", "exclusiveMinimum": 0, "maximum": 20, "description": "弹簧臂长度；碰撞收缩后的实际长度由引擎按 probe 计算。" },
+        "shoulder_offset_m": { "type": "number", "minimum": -2, "maximum": 2, "description": "右肩偏移，正值向右。" },
+        "height_offset_m": { "type": "number", "minimum": 0, "maximum": 4, "description": "观察支点相对脚底的高度。" },
+        "fov_deg": { "type": "number", "exclusiveMinimum": 30, "maximum": 120 },
+        "near_clip_m": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "far_clip_m": { "type": "number", "exclusiveMinimum": 10, "maximum": 1000000 },
+        "collision_probe_radius_m": { "type": "number", "exclusiveMinimum": 0, "maximum": 1, "description": "弹簧臂球形检测半径，用于避免穿墙。" },
+        "min_boom_m": { "type": "number", "minimum": 0, "maximum": 20, "description": "碰撞贴墙时允许收缩到的最短臂长。" },
+        "pitch_min_deg": { "type": "number", "minimum": -89, "maximum": 0 },
+        "pitch_max_deg": { "type": "number", "minimum": 0, "maximum": 89 }
+      }
+    }
+  }
+}

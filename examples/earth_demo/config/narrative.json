@@ -1,0 +1,336 @@
+{
+  "schema_version": "0.1.0",
+  "causal_rules": [
+    {
+      "id": "scarcity_drives_conflict",
+      "principle": "资源稀缺会放大群体冲突，并优先沿着既有的边界（国界、阶层、亲缘）爆发。",
+      "observable": "水、粮、草场出现缺口时，越界、偷盗与械斗先在小范围增多。",
+      "consequence": "若长期无视稀缺，冲突会从个体纠纷升级为群体对抗。",
+      "weight": 0.95
+    },
+    {
+      "id": "power_corrupts",
+      "principle": "权力缺少制衡时会转向寻租，掌握分配权的人最先获利。",
+      "observable": "关卡、税吏、巡逻队出现差别执法与灰色收费。",
+      "consequence": "制度信任流失，底层转向私下交易或暴力。",
+      "weight": 0.9
+    },
+    {
+      "id": "information_asymmetry",
+      "principle": "信息差决定议价权，先知道消息的人先行动。",
+      "observable": "商队、信使、祭司比普通人更早调整价格与立场。",
+      "consequence": "信息垄断者积累超额利益，其他人被结构性剥夺。",
+      "weight": 0.85
+    },
+    {
+      "id": "grievance_accumulates",
+      "principle": "未被回应的不满不会消失，只会累积并寻找出口。",
+      "observable": "怨言先出现在酒馆与家庭，再出现在联名与逃役。",
+      "consequence": "临界点后以暴动、迁徙或信仰狂热的形式释放。",
+      "weight": 0.9
+    },
+    {
+      "id": "legitimacy_tradeoff",
+      "principle": "秩序与自由此消彼长，任何稳定都要付出可见的代价。",
+      "observable": "戒严换来安全，同时带来盘查、征用与告密。",
+      "consequence": "过度追求秩序会制造新的反抗理由。",
+      "weight": 0.8
+    },
+    {
+      "id": "kinship_first",
+      "principle": "亲缘与地缘信任优先于制度信任，制度只在熟人网络失效处生效。",
+      "observable": "纠纷先找族老而非官府，借贷先看血缘而非契约。",
+      "consequence": "制度被架空，改革必须借道熟人网络才能落地。",
+      "weight": 0.75
+    }
+  ],
+  "nations": [
+    {
+      "id": "river_kingdom",
+      "name": "河谷王国",
+      "kind": "nation",
+      "government": "monarchy",
+      "ideology": "以水利与谷仓维持王权合法性",
+      "population": 420000,
+      "stability": 0.72,
+      "military": 0.6,
+      "economy": 0.7,
+      "territory_scene_refs": [
+        "city_core",
+        "farmland",
+        "coast"
+      ],
+      "foreign_policy": "mercantile"
+    },
+    {
+      "id": "hill_clans",
+      "name": "山岭部落",
+      "kind": "tribe",
+      "government": "council",
+      "ideology": "草场共有，长老议事，拒绝常备官僚",
+      "population": 96000,
+      "stability": 0.55,
+      "military": 0.45,
+      "economy": 0.35,
+      "territory_scene_refs": [
+        "mountain_range",
+        "forest"
+      ],
+      "foreign_policy": "defensive"
+    }
+  ],
+  "classes": [
+    {
+      "id": "nobility",
+      "name": "贵族",
+      "nation_id": "river_kingdom",
+      "share": 0.05,
+      "income_index": 7.5,
+      "mobility": 0.15,
+      "obligations": [
+        "提供军役",
+        "主持祭祀"
+      ],
+      "grievances": []
+    },
+    {
+      "id": "merchants",
+      "name": "商人",
+      "nation_id": "river_kingdom",
+      "share": 0.15,
+      "income_index": 7.0,
+      "mobility": 0.6,
+      "obligations": [
+        "缴纳商税"
+      ],
+      "grievances": [
+        "关卡林立"
+      ]
+    },
+    {
+      "id": "farmers",
+      "name": "农户",
+      "nation_id": "river_kingdom",
+      "share": 0.8,
+      "income_index": 2.0,
+      "mobility": 0.25,
+      "obligations": [
+        "纳粮",
+        "服徭役"
+      ],
+      "grievances": [
+        "水渠失修",
+        "谷贱伤农"
+      ]
+    },
+    {
+      "id": "clan_warriors",
+      "name": "部族武士",
+      "nation_id": "hill_clans",
+      "share": 0.2,
+      "income_index": 5.5,
+      "mobility": 0.35,
+      "obligations": [
+        "守界"
+      ],
+      "grievances": [
+        "草场缩小"
+      ]
+    },
+    {
+      "id": "herders",
+      "name": "牧民",
+      "nation_id": "hill_clans",
+      "share": 0.7,
+      "income_index": 2.2,
+      "mobility": 0.4,
+      "obligations": [
+        "贡牲畜"
+      ],
+      "grievances": [
+        "雪灾无补偿",
+        "商队压价"
+      ]
+    },
+    {
+      "id": "elders",
+      "name": "长老",
+      "nation_id": "hill_clans",
+      "share": 0.1,
+      "income_index": 6.0,
+      "mobility": 0.2,
+      "obligations": [
+        "裁决纠纷"
+      ],
+      "grievances": []
+    }
+  ],
+  "tensions": [
+    {
+      "id": "water_dispute",
+      "name": "河源争水",
+      "parties": [
+        {
+          "kind": "nation",
+          "ref": "river_kingdom"
+        },
+        {
+          "kind": "nation",
+          "ref": "hill_clans"
+        }
+      ],
+      "stake": "water",
+      "stage": "open",
+      "intensity": 0.65,
+      "triggers": [
+        "上游筑坝",
+        "牲畜越界饮水"
+      ]
+    },
+    {
+      "id": "grain_tax",
+      "name": "谷税之争",
+      "parties": [
+        {
+          "kind": "class",
+          "ref": "farmers"
+        },
+        {
+          "kind": "class",
+          "ref": "nobility"
+        }
+      ],
+      "stake": "food",
+      "stage": "emerging",
+      "intensity": 0.4,
+      "triggers": [
+        "加征军粮",
+        "灾年不减税"
+      ]
+    }
+  ],
+  "arcs": [
+    {
+      "id": "guo_gate_scale",
+      "title": "城门下的秤",
+      "npc_ref": "guard_lin",
+      "nation_ref": "river_kingdom",
+      "desire": "按规矩收税，不放过一袋私盐",
+      "obstacle": "商队与自己的上级都在施压",
+      "flaw": "认死理，不懂回旋",
+      "secret": "妹妹在商队里做账",
+      "stakes": "family",
+      "stage": "rising",
+      "tags": [
+        "秩序",
+        "亲缘"
+      ]
+    },
+    {
+      "id": "zhao_salt_ledger",
+      "title": "盐袋里的账",
+      "npc_ref": "merchant_zhao",
+      "nation_ref": "river_kingdom",
+      "class_ref": "merchants",
+      "desire": "打通关卡，把盐价稳住",
+      "obstacle": "新税吏严查，旧关系失灵",
+      "flaw": "赌性重",
+      "secret": "随身带着两套账本",
+      "stakes": "wealth",
+      "stage": "setup",
+      "tags": [
+        "贸易",
+        "腐败"
+      ]
+    },
+    {
+      "id": "qiu_well",
+      "title": "村口的井",
+      "npc_ref": "elder_qiu",
+      "nation_ref": "river_kingdom",
+      "class_ref": "farmers",
+      "desire": "让村子熬过旱季",
+      "obstacle": "水渠被上游截流，村里已有人想逃",
+      "flaw": "习惯把话说一半",
+      "secret": "私藏了一份王国减税文书",
+      "stakes": "community",
+      "stage": "setup",
+      "tags": [
+        "生存",
+        "乡土"
+      ]
+    }
+  ],
+  "chronicle": [
+    {
+      "id": "founding_stone",
+      "day": 0,
+      "summary": "河谷王国与山岭部落在河源立下界碑，约定共用水源。",
+      "participants": [
+        "river_kingdom",
+        "hill_clans"
+      ],
+      "tension_ref": "water_dispute"
+    },
+    {
+      "id": "first_grain_tax",
+      "day": 1,
+      "summary": "王国以军粮为名加征一成谷税，农户在村口聚集。",
+      "participants": [
+        "farmers",
+        "nobility"
+      ],
+      "tension_ref": "grain_tax"
+    }
+  ],
+  "quests": [
+    {
+      "id": "draw_river_water",
+      "title": "为旱地取水",
+      "description": "到城中组织一次取水，缓解河谷两岸的用水争执。",
+      "scene_id": "city_core",
+      "action": "work",
+      "duration_min": 60,
+      "tension_id": "water_dispute",
+      "participants": [
+        "river_kingdom",
+        "hill_clans"
+      ]
+    },
+    {
+      "id": "inspect_granary",
+      "title": "查验粮仓",
+      "description": "巡一遍城中粮仓，记录税收与存粮的缺口。",
+      "scene_id": "city_core",
+      "action": "patrol",
+      "duration_min": 90,
+      "tension_id": "grain_tax",
+      "participants": [
+        "farmers",
+        "merchants"
+      ]
+    }
+  ],
+  "generation": {
+    "pov": "third_person_limited",
+    "max_new_arcs_per_day": 2,
+    "language": "zh-CN",
+    "tone": "冷峻写实，克制的抒情",
+    "must_respect": [
+      "scarcity_drives_conflict",
+      "power_corrupts",
+      "information_asymmetry",
+      "grievance_accumulates",
+      "legitimacy_tradeoff",
+      "kinship_first"
+    ],
+    "forbidden": [
+      "无动机的巧合",
+      "全知视角直接揭示秘密",
+      "一夜之间改变国家制度",
+      "没有代价的胜利"
+    ],
+    "uniqueness": "per_day",
+    "novelty_window_days": 30
+  }
+}

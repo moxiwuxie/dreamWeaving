@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dreamweave.local/common.schema.json",
+  "title": "DreamWeave Common Definitions",
+  "description": "《织梦》全部世界配置共用的基础类型。所有内核 Schema 通过 $ref 引用此文件，确保 AI 侧只需学习一套命名。",
+  "type": "object",
+  "$defs": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0",
+      "description": "配置层版本，与 spec.version 同步；破坏性变更时升位。"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{1,63}$",
+      "description": "实体唯一标识，小写蛇形，跨文件引用使用同一命名空间。"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "vec3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "number" },
+      "description": "世界坐标/向量，单位米。"
+    },
+    "normalized": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "归一化系数，0=关闭，1=基准值。"
+    },
+    "positive": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "non_negative": {
+      "type": "number",
+      "minimum": 0
+    },
+    "curve_point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input", "output"],
+      "properties": {
+        "input": { "type": "number" },
+        "output": { "type": "number" }
+      }
+    },
+    "response_curve": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/curve_point" },
+      "description": "分段线性曲线，input 需单调递增，由校验器做语义检查。"
+    },
+    "ref": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{1,63}$",
+      "description": "指向同配置集内其他实体的 id 引用。"
+    },
+    "sensory_feedback": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "五感反馈挂钩（M002）。无外设时降级为视觉/听觉/UI 描述。",
+      "properties": {
+        "vfx": { "type": "string" },
+        "sfx": { "type": "string" },
+        "haptic": { "type": "string" },
+        "scent": { "type": "string" },
+        "taste": { "type": "string" }
+      }
+    }
+  }
+}
